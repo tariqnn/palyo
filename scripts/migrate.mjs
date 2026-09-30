@@ -3,8 +3,10 @@ import pg from "pg";
 import { readFile } from "node:fs/promises";
 
 const sql = await readFile("db/migrations/001_init.sql", "utf8");
-if (process.env.DATABASE_URL) {
-  const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
+const migrationUrl = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
+if (migrationUrl) {
+  const connectionString = migrationUrl.replace(/([?&])sslmode=(?:prefer|require|verify-ca)(?=&|$)/i, "$1sslmode=verify-full");
+  const client = new pg.Client({ connectionString });
   await client.connect();
   try { await client.query(sql); } finally { await client.end(); }
 } else {

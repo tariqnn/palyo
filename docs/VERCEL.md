@@ -30,6 +30,8 @@ Add these variables in **Project Settings → Environment Variables**, scoped to
 
 The `vercel-demo` build runs `scripts/prepare-vercel.mjs` before Next.js. When the branch, Preview environment, and `PLAYO_PRIVATE_DEMO=1` match, it migrates the connected PostgreSQL database and seeds fictional demo data. The seed is idempotent and leaves an existing populated database unchanged. No database URL needs to be copied to your computer.
 
+If Neon provides `DATABASE_URL_UNPOOLED`, migrations use that direct connection. Application requests continue to use the pooled `DATABASE_URL`.
+
 This automatic initialization runs **only** for the protected `vercel-demo` Preview. Never connect a customer production database to that branch.
 
 ## 5. Deploy the demo branch

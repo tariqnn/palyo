@@ -9,7 +9,8 @@ const globalDb = globalThis as typeof globalThis & { playoDb?: Promise<Queryable
 
 async function connect(): Promise<Queryable> {
   if (process.env.DATABASE_URL) {
-    globalDb.playoPool ??= new Pool({ connectionString: process.env.DATABASE_URL, max: 3, connectionTimeoutMillis: 10000 });
+    const connectionString = process.env.DATABASE_URL.replace(/([?&])sslmode=(?:prefer|require|verify-ca)(?=&|$)/i, "$1sslmode=verify-full");
+    globalDb.playoPool ??= new Pool({ connectionString, max: 3, connectionTimeoutMillis: 10000 });
     return globalDb.playoPool as Queryable;
   }
   if (process.env.NODE_ENV === "production") {
