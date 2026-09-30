@@ -1,6 +1,16 @@
-# Deploy PLAYO as a private Vercel demo
+# Deploy PLAYO on Vercel
 
 This guide uses a **Preview deployment**, a dedicated hosted PostgreSQL database, and Vercel Authentication. Do not publish the seeded demo accounts on an unprotected production domain. The demo uses simulated payments and stream metadata; it does not charge cards or play live video.
+
+## Public demo on the production domain
+
+The public site at `https://palyo.vercel.app` uses the `main` branch and its own Neon database, connected only to the **Production** environment. Vercel Authentication continues to protect Preview deployments; visitors to the production domain do not need Vercel access.
+
+Set `PLAYO_PUBLIC_DEMO=1`, `PAYMENT_PROVIDER=mock`, `STREAM_PROVIDER=mock`, and `NEXT_PUBLIC_SITE_URL=https://palyo.vercel.app` for Production. Store a unique password of at least 20 characters as the Production Secret `PLAYO_ADMIN_PASSWORD`. The `main` build migrates and seeds this database. The public seed gives sample non-admin accounts random unknown passwords and sets only `admin@playo.local` to the secret admin password. Do not publish that password in GitHub or page content.
+
+Public visitors can browse and create their own accounts. Bookings use simulated payments, and video streaming remains a demo placeholder. A real payments and streaming launch needs providers configured before the demo flags are removed.
+
+## Protected Preview setup
 
 ## 1. Import the repository
 

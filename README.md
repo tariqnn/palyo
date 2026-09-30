@@ -1,6 +1,6 @@
 # PLAYO
 
-For a private Vercel preview deployment, follow [the Vercel guide](docs/VERCEL.md).
+For Vercel Preview and public demo deployments, follow [the Vercel guide](docs/VERCEL.md).
 
 PLAYO is a responsive web platform for recreational football, basketball, dodgeball, and tennis in Amman. The visual system follows the supplied design reference: a dark photographic home page, compact white internal pages, and a restrained green accent.
 
@@ -28,7 +28,7 @@ On Windows PowerShell, use `Copy-Item .env.example .env` instead of `cp` if pref
 
 The demo seed creates 54 fictional players, eight fictional venues, 42 games (27 future and 15 historical), two tournaments, bookings, ratings, score events, achievements, posts, notifications, and processing recording metadata. All prices are in JD.
 
-### Development demo accounts
+### Local and protected Preview demo accounts
 
 | Role | Email | Password |
 | --- | --- | --- |
@@ -37,7 +37,7 @@ The demo seed creates 54 fictional players, eight fictional venues, 42 games (27
 | Organizer | `organizer@playo.local` | `PlayoDemo2026!` |
 | Admin | `admin@playo.local` | `PlayoDemo2026!` |
 
-The seed script refuses to run when `NODE_ENV=production`, except for an explicitly enabled private Vercel Preview demo. It also refuses an external `DATABASE_URL` unless `ALLOW_DEMO_SEED=1` is explicitly set. Never enable the demo seed against a live customer database.
+The public Production demo uses a separate database. Its sample players get unknown random passwords, and its admin password comes from a Vercel Secret; the credentials above do not work there. The seed script refuses an external `DATABASE_URL` unless `ALLOW_DEMO_SEED=1` is explicitly set. Never enable the demo seed against a live customer database.
 
 ## Checks
 

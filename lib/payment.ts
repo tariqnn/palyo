@@ -1,4 +1,4 @@
-import { privateDemoEnabled } from "./demo";
+import { demoEnabled } from "./demo";
 
 export interface PaymentProvider {
   charge(input:{amountFils:number;currency:"JOD";idempotencyKey:string}):Promise<{status:"PAID"|"FAILED";reference:string}>;
@@ -10,6 +10,6 @@ export const mockPayment:PaymentProvider={
 };
 export function paymentProvider():PaymentProvider {
   if(process.env.PAYMENT_PROVIDER&&process.env.PAYMENT_PROVIDER!=="mock") throw new Error("Payment provider is not configured.");
-  if(process.env.NODE_ENV==="production"&&!privateDemoEnabled()) throw new Error("Paid bookings need a payment provider. Mock payments are available only in a private Vercel Preview demo.");
+  if(process.env.NODE_ENV==="production"&&!demoEnabled()) throw new Error("Paid bookings need a payment provider. Mock payments require an explicitly enabled demo environment.");
   return mockPayment;
 }

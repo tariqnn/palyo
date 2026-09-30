@@ -2,10 +2,12 @@ import { PGlite } from "@electric-sql/pglite";
 import pg from "pg";
 import { hashSync } from "bcryptjs";
 import { readFile } from "node:fs/promises";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 
 const previewSeed=process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED==="1"&&process.env.PLAYO_PRIVATE_DEMO==="1"&&process.env.VERCEL_ENV==="preview";
-if((process.env.NODE_ENV==="production"&&!previewSeed)||(process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED!=="1"))throw new Error("Demo seed requires an explicitly enabled private Preview database.");
+const publicSeed=process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED==="1"&&process.env.PLAYO_PUBLIC_DEMO==="1"&&process.env.VERCEL_ENV==="production";
+if((process.env.NODE_ENV==="production"&&!previewSeed&&!publicSeed)||(process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED!=="1"))throw new Error("Demo seed requires an explicitly enabled demo database.");
+if(publicSeed&&(!process.env.PLAYO_ADMIN_PASSWORD||process.env.PLAYO_ADMIN_PASSWORD.length<20))throw new Error("The public demo needs a unique PLAYO_ADMIN_PASSWORD.");
 
 const db = process.env.DATABASE_URL ? new pg.Client({ connectionString: process.env.DATABASE_URL }) : new PGlite(process.env.PLAYO_DB_DIR || ".playo-db");
 if (process.env.DATABASE_URL) await db.connect();
@@ -24,13 +26,14 @@ const image = {
 };
 const first = ["Tariq","Ahmad","Omar","Yousef","Kareem","Ali","Hassan","Sami","Lina","Sara","Noor","Maya","Rami","Zaid","Hadi","Adam","Malik","Rana","Dana","Faris","Nour","Yara","Khaled","Jad","Basil","Nadine","Leen","Salma","Ameer","Ibrahim","Laith","Rashed","Hamza","Rami","Fadi","Alaa","Hussein","Zain","Haya","Mariam","Zara","Ola","Yazan","Razan","Samer","Reem","Amal","Bilal","Nouran","Nader","Anas","Saba","Dalia","Mahmoud"];
 const last = ["Ahmed","Mansour","Haddad","Nasser","Khalil","Saleh","Odeh","Sabbagh","Fayez","Hamdan","Khatib","Abdullah"];
-const demoHash = hashSync("PlayoDemo2026!", 12);
+const demoHash = hashSync(publicSeed ? randomBytes(32).toString("base64url") : "PlayoDemo2026!", 12);
+const adminHash = publicSeed ? hashSync(process.env.PLAYO_ADMIN_PASSWORD, 12) : demoHash;
 const users = [];
 for (let i=0;i<first.length;i++) {
  const id=randomUUID(), name=`${first[i]} ${last[i%last.length]}`, username=i===0?"tariq":`${first[i].toLowerCase()}${i}`;
  const email=i<4?["player@playo.local","scorekeeper@playo.local","organizer@playo.local","admin@playo.local"][i]:`${username}@playo.local`;
  const role=i===1?"SCOREKEEPER":i===2?"ORGANIZER":i===3?"ADMIN":"PLAYER";
- await q("INSERT INTO users(id,name,username,email,password_hash,role,xp,avatar_url) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",[id,name,username,email,demoHash,role,Math.max(0,4820-i*67),`https://i.pravatar.cc/120?img=${(i%70)+1}`]);
+ await q("INSERT INTO users(id,name,username,email,password_hash,role,xp,avatar_url) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",[id,name,username,email,i===3?adminHash:demoHash,role,Math.max(0,4820-i*67),`https://i.pravatar.cc/120?img=${(i%70)+1}`]);
  users.push({id,name,username});
  for(const sport of sports) await q("INSERT INTO sport_profiles(user_id,sport,rating,games,wins) VALUES($1,$2,$3,$4,$5)",[id,sport,Math.max(810,1284-i*9+(sports.indexOf(sport)*47)%150),Math.max(0,43-i%35),Math.max(0,26-i%23)]);
 }
