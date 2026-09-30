@@ -26,27 +26,11 @@ Add these variables in **Project Settings → Environment Variables**, scoped to
 
 `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM` are optional for the demo. Password reset email requires them. Add environment variables before redeploying; changes only reach new deployments.
 
-## 4. Initialize the Preview database once
+## 4. Initialize the Preview database
 
-Run these commands from a **local PowerShell terminal** in the repository after the Vercel project and database are connected. The environment file is ignored by Git.
+The `vercel-demo` build runs `scripts/prepare-vercel.mjs` before Next.js. When the branch, Preview environment, and `PLAYO_PRIVATE_DEMO=1` match, it migrates the connected PostgreSQL database and seeds fictional demo data. The seed is idempotent and leaves an existing populated database unchanged. No database URL needs to be copied to your computer.
 
-```powershell
-npx vercel login
-npx vercel link
-npx vercel env pull .env.preview.local --environment=preview
-$env:ALLOW_DEMO_SEED = '1'
-$env:PLAYO_PRIVATE_DEMO = '1'
-$env:VERCEL_ENV = 'preview'
-node --env-file=.env.preview.local scripts/migrate.mjs
-node --env-file=.env.preview.local scripts/seed.mjs
-Remove-Item Env:ALLOW_DEMO_SEED
-Remove-Item Env:PLAYO_PRIVATE_DEMO
-Remove-Item Env:VERCEL_ENV
-```
-
-The seed adds fictional players, venues, games, bookings, tournaments, and known demo credentials. It refuses a hosted database unless explicitly allowed. Run it only against the dedicated **Preview** database. It is idempotent and will leave an existing populated database unchanged.
-
-If the CLI says `DATABASE_URL` is missing, check the Preview environment variable in Vercel and pull it again. If the database provider offers both pooled and direct URLs, use the pooled URL for the app; a direct URL can be used for the one-time migration if the provider requires it.
+This automatic initialization runs **only** for the protected `vercel-demo` Preview. Never connect a customer production database to that branch.
 
 ## 5. Deploy the demo branch
 
