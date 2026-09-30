@@ -1,0 +1,55 @@
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { MapPin,CalendarDays,Users,Clock3,Video,BarChart3,Swords } from "lucide-react";
+import { getGame,gameDate,gameTime,money } from "@/lib/data";
+import { currentUser } from "@/lib/auth";
+import { myBooking } from "@/lib/booking";
+import { gamePlayers,scoreEvents,getScore } from "@/lib/competition";
+import { playerStats } from "@/lib/scoring";
+import { one, query } from "@/lib/db";
+import { bookAction, reviewAction } from "@/app/actions";
+
+export async function generateMetadata({params}:{params:Promise<{id:string}>}):Promise<Metadata>{const g=await getGame((await params).id);return {title:g?`${g.title} at ${g.venue_name}`:"Game",description:g?.description};}
+type Waitlist={position:number;status:string};
+type Recording={id:string;status:string};
+type Review={id:string;user_id:string;name:string;venue_rating:number;organization_rating:number;experience_rating:number;body:string|null;created_at:string};
+function BookingForm({id,price,spots,recordingEnabled}:{id:string;price:number;spots:number;recordingEnabled:boolean}){return <form action={bookAction}><input type="hidden" name="gameId" value={id}/>{recordingEnabled&&<label className="check-row"><input type="checkbox" name="recordingAck" required/><span>This game may be livestreamed and recorded. I understand the recording may remain available on PLAYO.</span></label>}<button className="btn btn-primary btn-block" type="submit">{spots===0?"Join Waitlist":`Join Game — ${money(price)}`}</button></form>}
+export default async function GameDetail({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{tab?:string;error?:string;notice?:string}>}){
+ const {id}=await params;const {tab="overview",error,notice}=await searchParams;
+ const [g,user]=await Promise.all([getGame(id),currentUser()]);if(!g)notFound();
+ const [players,events,score,booking,waitlist,recording,reviews]=await Promise.all([
+  gamePlayers(id),scoreEvents(id),getScore(id,g.sport,g.score_config),
+  user?myBooking(id,user.id):null,
+  user?one<Waitlist>("SELECT position,CASE WHEN status='OFFERED' AND expires_at<now() THEN 'EXPIRED' ELSE status END AS status FROM waitlist WHERE game_id=$1 AND user_id=$2",[id,user.id]):null,
+  one<Recording>("SELECT id,status FROM recordings WHERE game_id=$1 ORDER BY created_at DESC LIMIT 1",[id]),
+  query<Review>("SELECT r.*,u.name FROM reviews r JOIN users u ON u.id=r.user_id WHERE r.game_id=$1 ORDER BY r.created_at DESC",[id])
+ ]);
+ const spots=g.capacity-g.booked_count;
+ const tabs=["overview","players","teams","score","stats","rules","venue","video","reviews"];
+ const stats=playerStats(g.sport,events);
+ const columns=g.sport==="football"?["GOAL","ASSIST","SAVE","YELLOW_CARD","RED_CARD"]:g.sport==="basketball"?["PTS","ASSIST","REBOUND","STEAL","BLOCK","TURNOVER"]:g.sport==="dodgeball"?["ELIMINATION","CATCH","ROUND_WIN"]:["ACE","DOUBLE_FAULT","BREAK_POINT"];
+ const bookingClosed=["CANCELLED","COMPLETED","IN_PROGRESS"].includes(g.status)||new Date(g.starts_at)<=new Date();
+ return <main className="page"><div className="container">
+  <div className="breadcrumb"><Link href="/games">Games</Link> / {g.title}</div>
+  {error&&<div className="alert alert-error">{error}</div>}{notice&&<div className="alert">{notice}</div>}
+  <div className="detail-cover"><Image src={g.image_url} alt={`${g.title} at ${g.venue_name}`} fill priority sizes="(max-width:760px) 100vw, 1200px"/></div>
+  <div className="detail-layout"><div className="detail-main">
+   <div style={{display:"flex",gap:8,marginBottom:12}}><span className="badge badge-green">{g.sport}</span><span className="badge">{g.skill}</span>{g.status==="COMPLETED"&&<span className="badge badge-green">Result final</span>}{g.status==="CANCELLED"&&<span className="badge badge-orange">Cancelled</span>}</div>
+   <h1>{g.title}</h1><div className="detail-meta"><span><CalendarDays size={16}/>{gameDate(g.starts_at)} · {gameTime(g.starts_at)}</span><span><MapPin size={16}/>{g.venue_name}, {g.area}</span><span><Users size={16}/>{g.booked_count}/{g.capacity} players</span></div>
+   <div className="tabs">{tabs.map(t=><Link className={tab===t?"active":""} href={`/games/${id}?tab=${t}`} key={t}>{t[0].toUpperCase()+t.slice(1)}</Link>)}</div>
+   {tab==="overview"&&<><h2>About this game</h2><p>{g.description}</p><div style={{display:"flex",gap:13,flexWrap:"wrap",margin:"20px 0"}}><span className="badge"><Swords size={13}/> Balanced Teams</span><span className="badge"><BarChart3 size={13}/> Stats Recorded</span>{g.recording_enabled&&<span className="badge"><Video size={13}/> Recorded</span>}</div><h3>Players ({g.booked_count}/{g.capacity})</h3><div className="player-avatars">{players.slice(0,10).map(p=>p.avatar_url?<Image key={p.id} src={p.avatar_url} alt={p.name} title={p.name} width={32} height={32}/>:<span key={p.id}>{p.name[0]}</span>)}{players.length>10&&<span>+{players.length-10}</span>}</div><p className="muted" style={{fontSize:12,marginTop:13}}>Organized by {g.organizer_name}</p><p><Link className="inline-link" href={`/games/${id}/mvp`}>MVP voting →</Link></p></>}
+   {tab==="players"&&<div className="grid-2">{players.map(p=><div className="card" style={{padding:12}} key={p.id}><div className="avatar-row">{p.avatar_url&&<Image src={p.avatar_url} alt="" width={28} height={28}/>}<strong>{p.name}</strong><span className="muted" style={{marginLeft:"auto"}}>{p.team||"Player"}</span></div></div>)}</div>}
+   {tab==="teams"&&<div className="grid-2">{["BLACK","WHITE"].map(team=><div className="card" style={{padding:20}} key={team}><h3>{g.sport==="tennis"?"Side":"Team"} {team.toLowerCase()}</h3>{players.filter(p=>p.team===team).length?players.filter(p=>p.team===team).map(p=><p key={p.id}>{p.name}</p>):<p className="muted">Sides will be announced before the game.</p>}</div>)}</div>}
+   {tab==="score"&&<><div className="scoreboard"><div><div className="score-team">BLACK</div><div className="score-number">{score.black}</div></div><div className="score-mid">{score.label}<br/>VS</div><div><div className="score-team">WHITE</div><div className="score-number">{score.white}</div></div></div>{score.tennis&&<p className="muted">Sets {score.tennis.sets.map(s=>s.join("–")).join(", ")||"0–0"} · Games {score.tennis.games.join("–")} · Points {score.tennis.points.join("–")}</p>}<p><Link className="inline-link" href={`/games/${id}/score`}>Open live scoreboard →</Link></p><h3>Match timeline</h3><ul className="timeline">{events.filter(e=>e.type!=="REVERSAL").map(e=><li key={e.id}><time>{e.clock_seconds?`${Math.floor(e.clock_seconds/60)}:${String(e.clock_seconds%60).padStart(2,"0")}`:"—"}</time><strong>{e.type.replaceAll("_"," ")}</strong> · {e.player_name||e.team}</li>)}</ul></>}
+   {tab==="stats"&&<div className="card table-wrap"><table className="table"><thead><tr><th>Player</th>{columns.map(c=><th key={c}>{c.replaceAll("_"," ")}</th>)}</tr></thead><tbody>{players.map(p=><tr key={p.id}><td>{p.name}</td>{columns.map(c=><td key={c}>{stats[p.id]?.[c]||0}</td>)}</tr>)}</tbody></table></div>}
+   {tab==="rules"&&<div className="card" style={{padding:20}}><h3>Game rules</h3><p>{g.rules||"Respect the referee, other players and venue rules."}</p></div>}
+   {tab==="venue"&&<div className="card" style={{padding:20}}><h3>{g.venue_name}</h3><p><MapPin size={15} style={{display:"inline"}}/> {g.address}</p><Link className="inline-link" href={`/venues/${g.venue_id}`}>View venue →</Link></div>}
+   {tab==="reviews"&&<section><h2>Player reviews</h2>{booking?.status==="COMPLETED"&&<form className="card" style={{padding:20,marginBottom:18}} action={reviewAction}><input type="hidden" name="gameId" value={id}/><h3>{reviews.some(r=>r.user_id===user?.id)?"Update your review":"Review this game"}</h3><div className="grid-2">{([ ["venue","Venue"],["organization","Organization"],["experience","Experience"] ] as const).map(([name,label])=><div className="form-field" key={name}><label>{label}</label><select name={name} defaultValue={String(reviews.find(r=>r.user_id===user?.id)?.[`${name}_rating` as "venue_rating"|"organization_rating"|"experience_rating"]||5)}>{[5,4,3,2,1].map(n=><option value={n} key={n}>{n} / 5</option>)}</select></div>)}</div><div className="form-field"><label>Your comments</label><textarea name="body" maxLength={1000} defaultValue={reviews.find(r=>r.user_id===user?.id)?.body||""}/></div><button className="btn btn-primary">Save review</button></form>}{reviews.length?reviews.map(r=><article className="card" style={{padding:18,marginBottom:10}} key={r.id}><strong>{r.name}</strong><span className="badge" style={{marginLeft:10}}>{r.experience_rating}/5 experience</span><p>{r.body||"No written comments."}</p><small className="muted">Venue {r.venue_rating}/5 · Organization {r.organization_rating}/5</small></article>):<div className="empty"><h3>No reviews yet</h3><p>Players can review a game after its result is final.</p></div>}</section>}   {tab==="video"&&(recording?<div className="card" style={{padding:20}}><h3>Game recording</h3><p>{recording.status==="READY"?"Ready to watch":"Recording is being processed."}</p><Link className="inline-link" href={`/watch/${recording.id}`}>View recording →</Link></div>:<div className="empty"><Video size={26}/><h3>{g.recording_enabled?"Recording planned":"No video for this game"}</h3><p>Available recordings appear here after processing.</p></div>)}
+  </div><aside className="detail-sidebar"><div className="card booking-panel"><div className="price">{money(g.price_fils)}</div><p>per player · {g.skill}</p><hr/><p><CalendarDays size={14} style={{display:"inline"}}/> {gameDate(g.starts_at)} at {gameTime(g.starts_at)}</p><p><Clock3 size={14} style={{display:"inline"}}/> 90 minutes</p><p><MapPin size={14} style={{display:"inline"}}/> {g.venue_name}, {g.area}</p><hr/><strong>{spots===0?"Game full":`${spots} spots remaining`}</strong><p>{g.booked_count} of {g.capacity} players joined</p>
+   {booking&&booking.status!=="CANCELLED"?<div className="alert">{booking.status==="CONFIRMED"?"You're in!":booking.status==="COMPLETED"?"You played this game.":`Booking status: ${booking.status}`} <Link className="inline-link" href="/bookings">View booking</Link></div>:bookingClosed?<div className="badge badge-orange">{g.status==="CANCELLED"?"Cancelled":g.status==="COMPLETED"?"Result final":"Booking closed"}</div>:waitlist?.status==="WAITING"?<div className="alert">You&apos;re #{waitlist.position} on the waitlist.</div>:waitlist?.status==="OFFERED"?<><div className="alert">A spot opened up! Book now.</div><BookingForm id={id} price={g.price_fils} spots={spots} recordingEnabled={g.recording_enabled}/></>:<BookingForm id={id} price={g.price_fils} spots={spots} recordingEnabled={g.recording_enabled}/>}
+   <p style={{textAlign:"center"}}>Secure booking · Mock payment in development</p>
+  </div></aside></div>
+ </div></main>;
+}

@@ -1,0 +1,44 @@
+import { chromium } from "playwright";
+const browser=await chromium.launch({channel:"chrome",headless:true});
+const baseURL="http://localhost:3000";
+async function signedIn(email){const context=await browser.newContext({baseURL});const page=await context.newPage();await page.goto("/login");await page.getByLabel("Email").fill(email);await page.getByLabel("Password").fill("PlayoDemo2026!");await page.getByRole("button",{name:"Log In"}).click();await page.waitForURL("**/games",{timeout:15000});return {context,page};}
+try{
+ const organizer=await signedIn("organizer@playo.local");
+ await organizer.page.goto("/admin/games/new");
+ await organizer.page.locator('select[name="sport"]').selectOption("tennis");
+ await organizer.page.locator('input[name="format"]').fill("Singles");
+ await organizer.page.locator('input[name="title"]').fill(`Capacity Smoke ${Date.now()}`);
+ await organizer.page.locator('select[name="venueId"]').selectOption({label:"Royal Club (tennis)"});
+ const date=new Date(Date.now()+10*86400000);const local=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}T19:00`;
+ await organizer.page.locator('input[name="startsAt"]').fill(local);
+ await organizer.page.locator('input[name="capacity"]').fill("2");
+ await organizer.page.locator('input[name="price"]').fill("0");
+ await organizer.page.locator('textarea[name="description"]').fill("Last spot concurrency smoke test.");
+ await organizer.page.getByRole("button",{name:"Publish Game"}).click();
+ await organizer.page.waitForURL(url=>/^\/admin\/games\/[0-9a-f-]{36}$/.test(new URL(url).pathname),{timeout:15000});
+ const gameId=organizer.page.url().split("/").at(-1);
+ const player=await signedIn("player@playo.local"),scorekeeper=await signedIn("scorekeeper@playo.local"),admin=await signedIn("admin@playo.local");
+ await player.page.goto(`/games/${gameId}`);
+ if(!(await player.page.getByRole("button",{name:/Join Game/}).count()))throw new Error("New game cannot be booked: "+player.page.url()+" "+(await player.page.locator("body").innerText()).slice(0,500));
+ await player.page.getByRole("button",{name:/Join Game/}).click();
+ await player.page.waitForURL("**/bookings**",{timeout:15000});
+ await Promise.all([scorekeeper.page.goto(`/games/${gameId}`),admin.page.goto(`/games/${gameId}`)]);
+ await Promise.all([scorekeeper.page.getByRole("button",{name:/Join Game/}).click(),admin.page.getByRole("button",{name:/Join Game/}).click()]);
+ await Promise.all([scorekeeper.page.waitForFunction(()=>location.pathname==="/bookings"||location.search.includes("notice=")||location.search.includes("error="),{timeout:15000}),admin.page.waitForFunction(()=>location.pathname==="/bookings"||location.search.includes("notice=")||location.search.includes("error="),{timeout:15000})]);
+ const texts=[await scorekeeper.page.locator("body").innerText(),await admin.page.locator("body").innerText()];
+ const booked=texts.filter(t=>t.includes("Booking reference")).length;
+ const waitlisted=texts.filter(t=>t.includes("waitlist")).length;
+ if(booked!==1||waitlisted!==1)throw new Error(`Expected one booking and one waitlist: booked=${booked}, waitlisted=${waitlisted}; URLs ${scorekeeper.page.url()} / ${admin.page.url()}; ${texts.map(t=>t.slice(0,300)).join(" | ")}`);
+ console.log("PASS concurrent last-spot booking: one confirmed, one waitlisted");
+ const winner=texts[0].includes("Booking reference")?scorekeeper:admin;
+ const loser=winner===scorekeeper?admin:scorekeeper;
+ await winner.page.goto("/bookings");
+ await winner.page.locator(".card").filter({has:winner.page.locator(`a[href="/games/${gameId}"]`)}).getByRole("button",{name:"Cancel"}).click();
+ await winner.page.waitForURL("**/bookings?notice=**",{timeout:15000});
+ await loser.page.goto(`/games/${gameId}`);
+ if(!((await loser.page.locator("body").innerText()).includes("A spot opened up!")))throw new Error("Waitlist offer was not shown");
+ await loser.page.getByRole("button",{name:/Join Game/}).click();
+ await loser.page.waitForURL("**/bookings**",{timeout:15000});
+ console.log("PASS waitlist offer after cancellation can be claimed");
+ await Promise.all([organizer.context.close(),player.context.close(),scorekeeper.context.close(),admin.context.close()]);
+}finally{await browser.close();}

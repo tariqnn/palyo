@@ -1,0 +1,7 @@
+import Image from "next/image";
+import Link from "next/link";
+import { query } from "@/lib/db";
+import { joinTournamentAction } from "@/app/actions";
+import { gameDate } from "@/lib/data";
+type Tournament={id:string;name:string;sport:string;description:string;starts_at:string;ends_at:string;image_url:string;status:string;season:string};
+export default async function Tournaments({searchParams}:{searchParams:Promise<{notice?:string}>}){const {notice}=await searchParams;const rows=await query<Tournament>("SELECT * FROM tournaments ORDER BY starts_at");return <main className="page"><div className="container"><div className="page-head"><h1>Tournaments / Seasons</h1><p>Join a season. Play for something bigger.</p></div>{notice&&<div className="alert">{notice}</div>}<div className="grid-2">{rows.map(t=><div className="card" key={t.id}><div style={{height:220,position:"relative"}}><Image src={t.image_url} alt={t.name} fill sizes="50vw"/></div><div style={{padding:20}}><span className="badge badge-green">{t.status}</span><h2 style={{margin:"8px 0 3px"}}>{t.name}</h2><p className="muted" style={{fontSize:12}}>{t.sport} · {gameDate(t.starts_at)} – {gameDate(t.ends_at)}</p><p>{t.description}</p><div style={{display:"flex",gap:8}}><Link className="btn btn-outline" href={`/tournaments/${t.id}`}>View Tournament</Link>{t.status==="OPEN"&&new Date(t.starts_at)>new Date()&&<form action={joinTournamentAction}><input name="id" type="hidden" value={t.id}/><button className="btn btn-primary">Join Season</button></form>}</div></div></div>)}</div></div></main>}

@@ -1,0 +1,4 @@
+import Image from "next/image";
+import Link from "next/link";
+import { sports,sportLabels,sportImages } from "@/lib/brand";
+export default function Sports(){return <main className="page"><div className="container"><div className="page-head"><h1>Find your sport</h1><p>Four sports. One community. Pick your next game.</p></div><div className="grid-4">{sports.map(s=><Link className="card" href={`/sports/${s}`} key={s}><div style={{height:230,position:"relative"}}><Image src={sportImages[s]} alt={sportLabels[s]} fill sizes="25vw"/></div><div style={{padding:18}}><h2 style={{fontSize:20,margin:0}}>{sportLabels[s]}</h2><p className="muted" style={{margin:"5px 0"}}>{s==="football"?"5v5 · 7v7":s==="basketball"?"3v3 · 5v5":s==="dodgeball"?"Team Games":"Singles · Doubles"}</p><span className="inline-link">Explore {sportLabels[s]} →</span></div></Link>)}</div></div></main>}

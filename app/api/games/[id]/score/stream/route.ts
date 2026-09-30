@@ -1,0 +1,5 @@
+import { getGame } from "@/lib/data";
+import { getGameClock } from "@/lib/clock";
+import { getScore,scoreEvents } from "@/lib/competition";
+export const runtime="nodejs";
+export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){const {id}=await params;const game=await getGame(id);if(!game)return new Response("Not found",{status:404});const encoder=new TextEncoder();let timer:ReturnType<typeof setInterval>;const stream=new ReadableStream({async start(controller){let last="";async function send(){try{const [score,events,clock]=await Promise.all([getScore(id,game!.sport,game!.score_config),scoreEvents(id),getGameClock(id)]);const data=JSON.stringify({score,events,clock});if(data!==last){controller.enqueue(encoder.encode(`data: ${data}\n\n`));last=data;}else controller.enqueue(encoder.encode(": heartbeat\n\n"));}catch{controller.close();clearInterval(timer);}}await send();timer=setInterval(send,5000);},cancel(){clearInterval(timer);}});return new Response(stream,{headers:{"Content-Type":"text/event-stream","Cache-Control":"no-cache, no-transform","Connection":"keep-alive"}});}

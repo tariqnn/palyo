@@ -1,0 +1,13 @@
+import { describe,it,expect } from "vitest";
+import { calculateScore,validateEvent,type ScoreEvent } from "./scoring";
+import { balanceTeams } from "./teams";
+const event=(id:string,type:string,team:"BLACK"|"WHITE"):ScoreEvent=>({id,type,team});
+describe("sport scoring",()=>{
+ it("counts football goals, own goals and reversals",()=>{const events=[event("1","GOAL","BLACK"),event("2","OWN_GOAL","BLACK"),event("3","GOAL","WHITE"),{id:"4",type:"REVERSAL",reverses_event_id:"3"}];expect(calculateScore("football",events)).toMatchObject({black:1,white:1,label:"Goals"});});
+ it("counts basketball shot values",()=>{expect(calculateScore("basketball",[event("1","FREE_THROW","BLACK"),event("2","FIELD_GOAL_2","BLACK"),event("3","FIELD_GOAL_3","WHITE")])).toMatchObject({black:3,white:3,label:"Points"});});
+ it("counts dodgeball rounds rather than eliminations",()=>{expect(calculateScore("dodgeball",[event("1","ELIMINATION","BLACK"),event("2","ROUND_WIN","WHITE")])).toMatchObject({black:0,white:1,label:"Rounds"});});
+ it("handles tennis deuce and advantage",()=>{const events:ScoreEvent[]=[];for(let i=0;i<3;i++){events.push(event(`b${i}`,"POINT","BLACK"),event(`w${i}`,"POINT","WHITE"));}expect(calculateScore("tennis",events).tennis?.points).toEqual(["40","40"]);events.push(event("b3","POINT","BLACK"));expect(calculateScore("tennis",events).tennis?.points).toEqual(["AD","40"]);events.push(event("w3","POINT","WHITE"));expect(calculateScore("tennis",events).tennis?.points).toEqual(["40","40"]);events.push(event("b4","POINT","BLACK"),event("b5","POINT","BLACK"));expect(calculateScore("tennis",events).tennis?.games).toEqual([1,0]);});
+ it("respects best of five tennis configuration",()=>{const events:ScoreEvent[]=[];for(let i=0;i<12*4;i++)events.push(event(String(i),"POINT","BLACK"));expect(calculateScore("tennis",events,{tennisBestOf:3}).winner).toBe("BLACK");expect(calculateScore("tennis",events,{tennisBestOf:5}).winner).toBeUndefined();for(let i=48;i<18*4;i++)events.push(event(String(i),"POINT","BLACK"));expect(calculateScore("tennis",events,{tennisBestOf:5}).winner).toBe("BLACK");});
+ it("rejects events for the wrong sport",()=>{expect(()=>validateEvent("tennis",{type:"GOAL",team:"BLACK"})).toThrow();});
+});
+describe("team balancing",()=>{it("assigns every player once and keeps team sizes within one",()=>{const players=Array.from({length:13},(_,i)=>({id:String(i),rating:800+i*40}));const teams=balanceTeams(players);expect(teams.black.length+teams.white.length).toBe(13);expect(Math.abs(teams.black.length-teams.white.length)).toBe(1);expect(new Set([...teams.black,...teams.white].map(p=>p.id)).size).toBe(13);});});

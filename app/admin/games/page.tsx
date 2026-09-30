@@ -1,0 +1,8 @@
+import Link from "next/link";
+import { AdminShell } from "@/components/admin-shell";
+import { query } from "@/lib/db";
+import { currentUser } from "@/lib/auth";
+import { gameDate,money } from "@/lib/data";
+import { redirect } from "next/navigation";
+type Row={id:string;title:string;sport:string;starts_at:string;venue_name:string;booked_count:number;capacity:number;price_fils:number;status:string};
+export default async function AdminGames(){const user=await currentUser();if(!user)redirect("/login");if(!["ORGANIZER","ADMIN","SUPER_ADMIN","SCOREKEEPER"].includes(user.role))redirect("/games");const own=user.role==="ORGANIZER"||user.role==="SCOREKEEPER";const rows=await query<Row>(`SELECT g.*,v.name AS venue_name FROM games g JOIN venues v ON v.id=g.venue_id ${own?"WHERE g.organizer_id=$1 OR g.scorekeeper_id=$1":""} ORDER BY g.starts_at DESC LIMIT 100`,own?[user.id]:[]);return <AdminShell><div className="section-head"><div><h1 style={{margin:0}}>Games</h1><p className="muted">Create and manage matches.</p></div>{user.role!=="SCOREKEEPER"&&<Link className="btn btn-primary" href="/admin/games/new">Create Game</Link>}</div><div className="card table-wrap"><table className="table"><thead><tr><th>Game</th><th>Sport</th><th>Date</th><th>Venue</th><th>Players</th><th>Price</th><th>Status</th><th></th></tr></thead><tbody>{rows.map(g=><tr key={g.id}><td>{g.title}</td><td>{g.sport}</td><td>{gameDate(g.starts_at)}</td><td>{g.venue_name}</td><td>{g.booked_count}/{g.capacity}</td><td>{money(g.price_fils)}</td><td>{g.status}</td><td><Link className="inline-link" href={user.role==="SCOREKEEPER"?`/admin/games/${g.id}/scorekeeper`:`/admin/games/${g.id}`}>Manage</Link></td></tr>)}</tbody></table></div></AdminShell>}

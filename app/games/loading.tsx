@@ -1,0 +1,1 @@
+export default function Loading(){return <main className="page"><div className="container"><div className="page-head"><h1>Games</h1></div><div className="game-grid">{Array.from({length:6},(_,i)=><div className="card" key={i} style={{height:300,background:"linear-gradient(#f4f6f5 60%,#fff 60%)"}}/>)}</div></div></main>}

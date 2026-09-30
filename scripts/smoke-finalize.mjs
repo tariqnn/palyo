@@ -1,0 +1,30 @@
+import { chromium } from "playwright";
+const browser=await chromium.launch({channel:"chrome",headless:true});
+const context=await browser.newContext({baseURL:"http://localhost:3000"});
+const page=await context.newPage();
+try{
+ await page.goto("/login");
+ await page.getByLabel("Email").fill("organizer@playo.local");
+ await page.getByLabel("Password").fill("PlayoDemo2026!");
+ await page.getByRole("button",{name:"Log In"}).click();
+ await page.waitForURL("**/games",{timeout:15000});
+ await page.goto("/admin/games");
+ const available=page.locator("tbody tr").filter({hasText:"PUBLISHED"}).first();
+ await available.getByRole("link",{name:"Manage"}).click();
+ await page.getByRole("button",{name:"Generate balanced teams"}).click();
+ await page.waitForURL("**/admin/games/*?notice=**",{timeout:15000});
+ console.log("PASS balanced team generation");
+ await page.locator('select[name="playerId"]').selectOption({index:1});
+ await page.getByRole("button",{name:"Select MVP"}).click();
+ await page.waitForURL("**/admin/games/*?notice=**",{timeout:15000});
+ console.log("PASS organizer MVP selection");
+ await page.getByRole("link",{name:"Open Scorekeeper"}).click();
+ await page.locator('select[name="playerId"]').selectOption({index:1});
+ await page.getByRole("button",{name:"Record Event"}).click();
+ await page.waitForTimeout(300);
+ page.once("dialog",d=>d.accept());
+ await page.getByRole("button",{name:"Finalize Result"}).click();
+ await page.waitForURL("**/games/*/score?notice=**",{timeout:15000});
+ if(!((await page.locator("body").innerText()).includes("Final")))throw new Error("Final result not shown: "+page.url()+" "+(await page.locator("body").innerText()).slice(0,500));
+ console.log("PASS result finalization and spectator score");
+}finally{await browser.close();}

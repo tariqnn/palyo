@@ -1,0 +1,54 @@
+import { chromium } from "playwright";
+
+const browser=await chromium.launch({channel:"chrome",headless:true});
+const context=await browser.newContext({baseURL:"http://localhost:3000",viewport:{width:1440,height:900}});
+const page=await context.newPage();
+const errors=[];
+page.on("pageerror",e=>errors.push(e.message));
+try{
+ const unique=Date.now();
+ await page.goto("/signup");
+ await page.getByLabel("Full name").fill("Smoke Test Player");
+ await page.getByLabel("Username").fill(`smoke${unique}`);
+ await page.getByLabel("Email").fill(`smoke${unique}@example.com`);
+ await page.getByLabel("Phone number").fill("+962790000000");
+ await page.getByLabel("Password",{exact:true}).fill("ValidPassword2026!");
+ await page.getByLabel("Confirm password").fill("ValidPassword2026!");
+ await page.getByRole("checkbox",{name:/I agree/}).check();
+ await page.getByRole("button",{name:"Create account"}).click();
+ await page.waitForURL("**/onboarding/sports",{timeout:15000});
+ await page.locator('input[name="sports"][value="football"]').check();
+ await page.getByRole("button",{name:"Continue"}).click();
+ await page.waitForURL("**/profile/**",{timeout:15000});
+ await page.goto("/games");
+ await page.locator(".game-card").filter({hasText:/spots left/}).last().locator("a.game-card-image").click();
+ await page.waitForURL("**/games/**");
+ const bookedUrl=page.url();
+ const ack=page.locator('input[name="recordingAck"]'); if(await ack.count())await ack.check();
+ await page.getByRole("button",{name:/Join Game/}).click();
+ await page.waitForURL("**/bookings**",{timeout:15000});
+ const body=await page.locator("body").innerText();
+ if(!body.includes("Booking reference"))throw new Error("Booking confirmation not shown: "+body.slice(0,400));
+ console.log("PASS signup → onboarding → game booking → confirmation");
+ await page.goto(bookedUrl);
+ if(!((await page.locator("body").innerText()).includes("You're in!")))throw new Error("Existing booking was not shown: "+(await page.locator("body").innerText()).slice(-500));
+ console.log("PASS duplicate booking prevented in UI");
+ await page.goto("/bookings");
+ const cancel=page.locator('form button:has-text("Cancel")').first();
+ if(await cancel.count()){await cancel.click();await page.waitForURL("**/bookings?notice=**",{timeout:15000});console.log("PASS booking cancellation");}
+ await page.goto("/forgot-password");
+ await page.getByLabel("Email").fill(`smoke${unique}@example.com`);
+ await page.getByRole("button",{name:"Send reset link"}).click();
+ await page.waitForURL("**/forgot-password?sent=**",{timeout:15000});
+ await page.getByRole("link",{name:"Reset password"}).click();
+ await page.getByLabel("New password").fill("ChangedPassword2026!");
+ await page.getByLabel("Confirm password").fill("ChangedPassword2026!");
+ await page.getByRole("button",{name:"Update password"}).click();
+ await page.waitForURL("**/login?notice=**",{timeout:15000});
+ await page.getByLabel("Email").fill(`smoke${unique}@example.com`);
+ await page.getByLabel("Password").fill("ChangedPassword2026!");
+ await page.getByRole("button",{name:"Log In"}).click();
+ await page.waitForURL("**/games",{timeout:15000});
+ console.log("PASS password reset → login with new password");
+ if(errors.length)throw new Error("Browser errors: "+errors.join("; "));
+}finally{await browser.close();}
