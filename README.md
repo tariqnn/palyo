@@ -1,5 +1,7 @@
 # PLAYO
 
+For a private Vercel preview deployment, follow [the Vercel guide](docs/VERCEL.md).
+
 PLAYO is a responsive web platform for recreational football, basketball, dodgeball, and tennis in Amman. The visual system follows the supplied design reference: a dark photographic home page, compact white internal pages, and a restrained green accent.
 
 ## Stack
@@ -35,7 +37,7 @@ The demo seed creates 54 fictional players, eight fictional venues, 42 games (27
 | Organizer | `organizer@playo.local` | `PlayoDemo2026!` |
 | Admin | `admin@playo.local` | `PlayoDemo2026!` |
 
-The seed script refuses to run when `NODE_ENV=production`. It also refuses an external `DATABASE_URL` unless `ALLOW_DEMO_SEED=1` is explicitly set. Never enable the demo seed against a live customer database.
+The seed script refuses to run when `NODE_ENV=production`, except for an explicitly enabled private Vercel Preview demo. It also refuses an external `DATABASE_URL` unless `ALLOW_DEMO_SEED=1` is explicitly set. Never enable the demo seed against a live customer database.
 
 ## Checks
 
@@ -73,7 +75,7 @@ The stream provider interface and visibility checks are in `lib/streaming.ts`. T
 
 Set `DATABASE_URL` to a standard PostgreSQL connection string and run `npm run db:migrate`. Set `NEXT_PUBLIC_SITE_URL` to the public origin. Password resets require `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM`; in development, the reset link is shown on screen instead. Optional brand social URLs are `NEXT_PUBLIC_INSTAGRAM_URL` and `NEXT_PUBLIC_X_URL`.
 
-`PAYMENT_PROVIDER=mock` is allowed only in development. Production bookings need a Jordan-supported payment adapter with webhook signature checks, asynchronous settlement, and idempotent refunds before real money can be accepted. `STREAM_PROVIDER=mock` provides metadata only; a production stream adapter, signed playback URLs, webhook processing, and storage configuration are still required. See `PROJECT_STATUS.md` for the remaining launch work.
+`PAYMENT_PROVIDER=mock` is allowed in development or in an explicitly enabled **private Vercel Preview demo**. Production bookings need a Jordan-supported payment adapter with webhook signature checks, asynchronous settlement, and idempotent refunds before real money can be accepted. `STREAM_PROVIDER=mock` provides metadata only; a production stream adapter, signed playback URLs, webhook processing, and storage configuration are still required. See `PROJECT_STATUS.md` for the remaining launch work.
 
 ## Photo assets
 

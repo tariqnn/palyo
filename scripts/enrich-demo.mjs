@@ -3,7 +3,8 @@ import pg from "pg";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 
-if(process.env.NODE_ENV==="production"||(process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED!=="1"))throw new Error("Demo enrichment is disabled for production or external databases without ALLOW_DEMO_SEED=1.");
+const previewSeed=process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED==="1"&&process.env.PLAYO_PRIVATE_DEMO==="1"&&process.env.VERCEL_ENV==="preview";
+if((process.env.NODE_ENV==="production"&&!previewSeed)||(process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED!=="1"))throw new Error("Demo enrichment requires an explicitly enabled private Preview database.");
 
 const db=process.env.DATABASE_URL?new pg.Client({connectionString:process.env.DATABASE_URL}):new PGlite(process.env.PLAYO_DB_DIR||".playo-db");
 if(process.env.DATABASE_URL)await db.connect();

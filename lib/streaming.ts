@@ -1,6 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { one,query,transaction } from "@/lib/db";
+import { privateDemoEnabled } from "./demo";
 export type Visibility="PUBLIC"|"PARTICIPANTS_ONLY"|"UNLISTED"|"PRIVATE";
 export interface StreamingProvider {
   createStream(gameId:string):Promise<{providerId:string;serverUrl:string;streamKey:string}>;
@@ -15,7 +16,7 @@ const mockProvider:StreamingProvider={
   async getStatus(){return "SCHEDULED";}, async endStream(){}, async getPlayback(){return null;},
   async getRecording(){return null;}, async deleteRecording(){},
 };
-export function streamingProvider():StreamingProvider {if(process.env.STREAM_PROVIDER&&process.env.STREAM_PROVIDER!=="mock")throw new Error("Streaming provider is not configured.");if(process.env.NODE_ENV==="production")throw new Error("Mock streaming is disabled in production.");return mockProvider;}
+export function streamingProvider():StreamingProvider {if(process.env.STREAM_PROVIDER&&process.env.STREAM_PROVIDER!=="mock")throw new Error("Streaming provider is not configured.");if(process.env.NODE_ENV==="production"&&!privateDemoEnabled())throw new Error("Mock streaming is available only in a private Vercel Preview demo.");return mockProvider;}
 export async function createGameStream(gameId:string,visibility:Visibility){
   const existing=await one("SELECT id FROM streams WHERE game_id=$1",[gameId]);if(existing)throw new Error("This game already has a stream.");
   const provider=await streamingProvider().createStream(gameId),id=randomUUID();

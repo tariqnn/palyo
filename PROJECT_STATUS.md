@@ -12,7 +12,7 @@
 
 ## Remaining before public launch
 
-- Integrate a Jordan-supported payment processor and its signed webhooks, asynchronous settlement, and real refunds. The mock adapter is restricted to development.
+- Integrate a Jordan-supported payment processor and its signed webhooks, asynchronous settlement, and real refunds. The mock adapter is restricted to development and explicitly enabled private Vercel Preview demos.
 - Integrate a video provider for ingest, playback, recording processing, signed playback URLs, and provider webhooks. The mock stream records metadata only; no video is available without an adapter.
 - Configure a real SMTP service for password reset email and production monitoring/operations. Development shows the reset link locally.
 - Expand tournaments and seasons beyond the present entry, fixture, and standings foundation if league operations are required.

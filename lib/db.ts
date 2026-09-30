@@ -9,8 +9,11 @@ const globalDb = globalThis as typeof globalThis & { playoDb?: Promise<Queryable
 
 async function connect(): Promise<Queryable> {
   if (process.env.DATABASE_URL) {
-    globalDb.playoPool ??= new Pool({ connectionString: process.env.DATABASE_URL });
+    globalDb.playoPool ??= new Pool({ connectionString: process.env.DATABASE_URL, max: 3, connectionTimeoutMillis: 10000 });
     return globalDb.playoPool as Queryable;
+  }
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("DATABASE_URL is required in production. Configure hosted PostgreSQL before deploying.");
   }
   const db = new PGlite(process.env.PLAYO_DB_DIR || ".playo-db");
   const sql = await readFile(path.join(process.cwd(), "db/migrations/001_init.sql"), "utf8");
