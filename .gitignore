@@ -49,3 +49,8 @@ public/images/hero-color.jpg
 next-env.d.ts
 
 .vercel/
+
+# optional Neon CLI agent guidance
+/.agents/skills/neon/
+/.agents/skills/neon-postgres/
+/skills-lock.json

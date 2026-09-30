@@ -6,7 +6,7 @@ import { bookGame, cancelBooking, cancelGame } from "@/lib/booking";
 import { addScoreEvent, finalizeGame, generateTeams, undoScoreEvent } from "@/lib/competition";
 import { eventSchema } from "@/lib/scoring";
 import { controlGameClock } from "@/lib/clock";
-import { query, one } from "@/lib/db";
+import { query, one, transaction } from "@/lib/db";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { createGameStream,endGameStream,type Visibility } from "@/lib/streaming";
@@ -49,3 +49,26 @@ export async function selectMvpAction(form:FormData){const id=String(form.get("g
 export async function voteMvpAction(form:FormData){const id=String(form.get("gameId")),nominee=String(form.get("playerId"));const user=await currentUser();if(!user)redirect("/login");let error="";try{const game=await one<{mvp_enabled:boolean;finalized_at:string|null}>("SELECT mvp_enabled,finalized_at FROM games WHERE id=$1",[id]);if(!game?.mvp_enabled||game.finalized_at)throw new Error("MVP voting is closed.");const [voter,player]=await Promise.all([one("SELECT id FROM bookings WHERE game_id=$1 AND user_id=$2 AND status IN ('CONFIRMED','COMPLETED')",[id,user.id]),one("SELECT id FROM bookings WHERE game_id=$1 AND user_id=$2 AND status IN ('CONFIRMED','COMPLETED')",[id,nominee])]);if(!voter||!player)throw new Error("Only booked players can vote for another booked player.");const existing=await one("SELECT voter_id FROM mvp_votes WHERE game_id=$1 AND voter_id=$2",[id,user.id]);if(existing)throw new Error("You have already voted.");await query("INSERT INTO mvp_votes(game_id,voter_id,nominee_id) VALUES($1,$2,$3)",[id,user.id,nominee]);}catch(e){error=errorText(e);}redirect(error?`/games/${id}/mvp?error=${encodeURIComponent(error)}`:`/games/${id}/mvp?notice=Vote%20recorded`);}
 export async function cancelGameAction(form:FormData){const id=String(form.get("gameId"));let error="";try{const user=await requireManager(id),game=await one<{organizer_id:string}>("SELECT organizer_id FROM games WHERE id=$1",[id]);if(!game||!(game.organizer_id===user.id||["ADMIN","SUPER_ADMIN"].includes(user.role)))throw new Error("Only the organizer can cancel this game.");await cancelGame(id,user.id);}catch(e){error=errorText(e);}revalidatePath("/games");redirect(error?`/admin/games/${id}?error=${encodeURIComponent(error)}`:`/admin/games/${id}?notice=Game%20cancelled`);}
 export async function adminCancelBookingAction(form:FormData){const id=String(form.get("bookingId"));let error="";try{const booking=await one<{game_id:string;user_id:string}>("SELECT game_id,user_id FROM bookings WHERE id=$1",[id]);if(!booking)throw new Error("Booking not found.");const user=await organizerFor(booking.game_id);await cancelBooking(id,booking.user_id);await query("INSERT INTO audit_logs(id,actor_id,action,entity,entity_id) VALUES($1,$2,'PLAYER_REMOVED','booking',$3)",[randomUUID(),user.id,id]);}catch(e){error=errorText(e);}redirect(error?`/admin/bookings?error=${encodeURIComponent(error)}`:"/admin/bookings?notice=Booking%20cancelled%20and%20refunded");}
+
+export async function adminDeletePostAction(form: FormData) {
+  const user = await currentUser();
+  if (!user) redirect("/login");
+  if (!["ADMIN", "SUPER_ADMIN"].includes(user.role)) redirect("/admin");
+  const postId = String(form.get("postId") || "");
+  if (!z.string().uuid().safeParse(postId).success) redirect("/admin/community?error=Invalid%20post");
+  try {
+    await transaction(async tx => {
+      const post = (await tx.query("SELECT user_id FROM posts WHERE id=$1 FOR UPDATE", [postId])).rows[0];
+      if (!post) throw new Error("Post not found.");
+      await tx.query("DELETE FROM post_likes WHERE post_id=$1", [postId]);
+      await tx.query("DELETE FROM post_comments WHERE post_id=$1", [postId]);
+      await tx.query("DELETE FROM posts WHERE id=$1", [postId]);
+      await tx.query("INSERT INTO audit_logs(id,actor_id,action,entity,entity_id,old_data) VALUES($1,$2,'POST_REMOVED','post',$3,$4)", [randomUUID(), user.id, postId, JSON.stringify({ authorId: post.user_id })]);
+    });
+  } catch (error) {
+    redirect(`/admin/community?error=${encodeURIComponent(errorText(error))}`);
+  }
+  revalidatePath("/community");
+  revalidatePath("/admin/community");
+  redirect("/admin/community?notice=Post%20removed");
+}

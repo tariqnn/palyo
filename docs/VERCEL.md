@@ -46,3 +46,18 @@ Open `/api/health` on that Preview URL after signing in through Vercel Authentic
 | Admin | `admin@playo.local` | `PlayoDemo2026!` |
 
 Bookings in this protected Preview record **simulated** payments. Stream controls create metadata only; video playback remains unavailable without a streaming provider. The production domain should not use these seeded accounts or mock providers.
+
+## Monitor the private demo
+
+Sign in with the admin demo account, then open `/admin` on the protected Preview URL. The header also shows an **Admin** link for staff accounts. The overview shows member, game, booking, and stream totals from the connected database; use **Refresh** to reload them. The sidebar provides:
+
+- **Games** and **Bookings**: searchable, filterable lists with management actions and pagination.
+- **Streams**: stream status and visibility for each game.
+- **Members**: searchable account list and individual booking and sport history.
+- **Venues** and **Tournaments**: location, registration, and game activity.
+- **Content review**: recent community posts and game reviews; admins can remove posts and their comments, with the action recorded in the audit log.
+- **Staff activity**: paginated audit log entries.
+- **Messages**: contact form submissions.
+- **Analytics**: overall counts, processed payments, seven-day trends, and sport demand.
+
+The dashboard is responsive on phones. Member, game, booking, stream, and activity rows become cards at phone widths. Metrics reflect the database when the page is loaded; the dashboard does not stream live updates. Demo booking values are simulated and are labeled separately from processed payment records.

@@ -1,8 +1,27 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Activity, BarChart3, CalendarDays, CreditCard, LayoutDashboard, Mail, MapPin, MessageSquare, Radio, Trophy, Users } from "lucide-react";
 import { currentUser } from "@/lib/auth";
-export async function AdminShell({children}:{children:React.ReactNode}){
- const user=await currentUser();if(!user)redirect("/login");if(!["ORGANIZER","ADMIN","SUPER_ADMIN","SCOREKEEPER"].includes(user.role))redirect("/games");
- const admin=["ADMIN","SUPER_ADMIN"].includes(user.role);
- return <main className="page"><div className="container admin-layout"><nav className="admin-nav" aria-label="Admin"><strong style={{display:"block",padding:"7px 11px 16px"}}>Manage PLAYO</strong><Link href="/admin">Overview</Link><Link href="/admin/games">Games</Link><Link href="/admin/streams">Live Streams</Link><Link href="/admin/bookings">Bookings</Link><Link href="/venues">Venues</Link><Link href="/tournaments">Tournaments</Link><Link href="/community">Community</Link>{admin&&<><Link href="/admin/messages">Messages</Link><Link href="/admin/analytics">Analytics</Link></>}</nav><div>{children}</div></div></main>;
+
+export async function AdminShell({ children }: { children: React.ReactNode }) {
+  const user = await currentUser();
+  if (!user) redirect("/login");
+  if (!["ORGANIZER", "ADMIN", "SUPER_ADMIN", "SCOREKEEPER"].includes(user.role)) redirect("/games");
+  const admin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
+  const links = [
+    { href: "/admin", label: "Overview", icon: LayoutDashboard },
+    { href: "/admin/games", label: "Games", icon: CalendarDays },
+    { href: "/admin/bookings", label: "Bookings", icon: CreditCard },
+    { href: "/admin/streams", label: "Streams", icon: Radio },
+    ...(admin ? [
+      { href: "/admin/users", label: "Members", icon: Users },
+      { href: "/admin/venues", label: "Venues", icon: MapPin },
+      { href: "/admin/tournaments", label: "Tournaments", icon: Trophy },
+      { href: "/admin/community", label: "Content review", icon: MessageSquare },
+      { href: "/admin/activity", label: "Staff activity", icon: Activity },
+      { href: "/admin/messages", label: "Messages", icon: Mail },
+      { href: "/admin/analytics", label: "Analytics", icon: BarChart3 }
+    ] : [])
+  ];
+  return <main className="page admin-page"><div className="container admin-layout"><nav className="admin-nav" aria-label="Admin navigation"><div className="admin-nav-title"><strong>PLAYO Admin</strong><small>{admin ? "Platform management" : "Game management"}</small></div>{links.map(({ href, label, icon: Icon }) => <Link href={href} key={href}><Icon size={16}/>{label}</Link>)}</nav><div className="admin-content">{children}</div></div></main>;
 }
