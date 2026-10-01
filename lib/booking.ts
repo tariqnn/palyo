@@ -1,7 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { transaction, query, one } from "@/lib/db";
-import { paymentProvider } from "@/lib/payment";
 
 export async function bookGame(gameId:string,userId:string,recordingAcknowledged:boolean){
   return transaction(async tx=>{
@@ -28,13 +27,10 @@ export async function bookGame(gameId:string,userId:string,recordingAcknowledged
     }
     const bookingId=randomUUID(), reference=`PLY-${randomUUID().slice(0,6).toUpperCase()}`;
     const amount=Number(game.price_fils);
-    if(duplicate) await tx.query("UPDATE bookings SET status='PENDING',payment_status='PENDING',reference=$1,amount_fils=$2,recording_acknowledged=$3 WHERE id=$4",[reference,amount,recordingAcknowledged,duplicate.id]);
+    if(duplicate) await tx.query("UPDATE bookings SET status='PENDING',payment_status='PAY_AT_VENUE',reference=$1,amount_fils=$2,recording_acknowledged=$3 WHERE id=$4",[reference,amount,recordingAcknowledged,duplicate.id]);
     else await tx.query("INSERT INTO bookings(id,reference,game_id,user_id,amount_fils,recording_acknowledged) VALUES($1,$2,$3,$4,$5,$6)",[bookingId,reference,gameId,userId,amount,recordingAcknowledged]);
     const actualId=duplicate?String(duplicate.id):bookingId;
-    const charge=await paymentProvider().charge({amountFils:amount,currency:"JOD",idempotencyKey:reference});
-    if(charge.status!=="PAID") throw new Error("Payment failed. Please try again.");
-    await tx.query("INSERT INTO payments(id,booking_id,provider,provider_ref,amount_fils,status,idempotency_key) VALUES($1,$2,'mock',$3,$4,'PAID',$5) ON CONFLICT(booking_id) DO UPDATE SET status='PAID',provider_ref=$3,amount_fils=$4,idempotency_key=$5",[randomUUID(),actualId,charge.reference,amount,reference]);
-    await tx.query("UPDATE bookings SET status='CONFIRMED',payment_status='PAID' WHERE id=$1",[actualId]);
+    await tx.query("UPDATE bookings SET status='CONFIRMED',payment_status='PAY_AT_VENUE' WHERE id=$1",[actualId]);
     await tx.query("UPDATE waitlist SET status='JOINED' WHERE game_id=$1 AND user_id=$2",[gameId,userId]);
     await tx.query("UPDATE games SET booked_count=booked_count+1,status=CASE WHEN booked_count+1>=capacity THEN 'FULL' ELSE 'FILLING' END WHERE id=$1",[gameId]);
     await tx.query("INSERT INTO notifications(id,user_id,type,title,body,href) VALUES($1,$2,'BOOKING','Booking confirmed',$3,$4)",[randomUUID(),userId,`You're in! Reference ${reference}`,`/bookings`]);
@@ -50,13 +46,7 @@ export async function cancelBooking(bookingId:string,userId:string){
     if(!booking||booking.user_id!==userId) throw new Error("Booking not found.");
     if(booking.status!=="CONFIRMED") throw new Error("This booking cannot be cancelled.");
     if(new Date(String(booking.starts_at))<=new Date()) throw new Error("This game has already started.");
-    const pay=(await tx.query("SELECT * FROM payments WHERE booking_id=$1",[bookingId])).rows[0];
-    if(pay&&pay.status==="PAID"){
-      const refund=await paymentProvider().refund({reference:String(pay.provider_ref),amountFils:Number(pay.amount_fils),idempotencyKey:`refund_${bookingId}`});
-      if(refund.status!=="REFUNDED") throw new Error("Refund failed.");
-      await tx.query("UPDATE payments SET status='REFUNDED' WHERE booking_id=$1 AND status='PAID'",[bookingId]);
-    }
-    await tx.query("UPDATE bookings SET status='CANCELLED',payment_status='REFUNDED' WHERE id=$1",[bookingId]);
+    await tx.query("UPDATE bookings SET status='CANCELLED',payment_status=CASE WHEN payment_status='PAID' THEN 'REFUNDED' ELSE 'CANCELLED' END WHERE id=$1",[bookingId]);
     await tx.query("UPDATE games SET booked_count=booked_count-1,status='FILLING' WHERE id=$1",[booking.game_id]);
     const next=(await tx.query("SELECT * FROM waitlist WHERE game_id=$1 AND status='WAITING' ORDER BY position LIMIT 1 FOR UPDATE",[booking.game_id])).rows[0];
     if(next){
@@ -74,15 +64,10 @@ export async function cancelGame(gameId:string,actorId:string){
     if(!game)throw new Error("Game not found.");
     if(game.status==="CANCELLED")return;
     if(game.status==="COMPLETED")throw new Error("A completed game cannot be cancelled.");
-    const bookings=(await tx.query("SELECT b.id,b.user_id,p.provider_ref,p.amount_fils,p.status AS payment_status FROM bookings b LEFT JOIN payments p ON p.booking_id=b.id WHERE b.game_id=$1 AND b.status='CONFIRMED' FOR UPDATE OF b",[gameId])).rows;
+    const bookings=(await tx.query("SELECT id,user_id FROM bookings WHERE game_id=$1 AND status='CONFIRMED' FOR UPDATE",[gameId])).rows;
     for(const booking of bookings){
-      if(booking.payment_status==="PAID"){
-        const refund=await paymentProvider().refund({reference:String(booking.provider_ref),amountFils:Number(booking.amount_fils),idempotencyKey:`refund_${booking.id}`});
-        if(refund.status!=="REFUNDED")throw new Error("Refund failed; cancellation was not applied.");
-        await tx.query("UPDATE payments SET status='REFUNDED' WHERE booking_id=$1 AND status='PAID'",[booking.id]);
-      }
-      await tx.query("UPDATE bookings SET status='CANCELLED',payment_status='REFUNDED' WHERE id=$1",[booking.id]);
-      await tx.query("INSERT INTO notifications(id,user_id,type,title,body,href) VALUES($1,$2,'GAME_CANCELLED','Game cancelled','Your game was cancelled and payment refunded.',$3)",[randomUUID(),booking.user_id,`/games/${gameId}`]);
+      await tx.query("UPDATE bookings SET status='CANCELLED',payment_status=CASE WHEN payment_status='PAID' THEN 'REFUNDED' ELSE 'CANCELLED' END WHERE id=$1",[booking.id]);
+      await tx.query("INSERT INTO notifications(id,user_id,type,title,body,href) VALUES($1,$2,'GAME_CANCELLED','Game cancelled','Your game was cancelled. Nothing is owed.',$3)",[randomUUID(),booking.user_id,`/games/${gameId}`]);
     }
     await tx.query("UPDATE waitlist SET status='CANCELLED' WHERE game_id=$1 AND status IN ('WAITING','OFFERED')",[gameId]);
     await tx.query("UPDATE games SET status='CANCELLED',booked_count=0 WHERE id=$1",[gameId]);

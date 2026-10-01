@@ -3,7 +3,6 @@ import { Geist } from "next/font/google";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { brand } from "@/lib/brand";
-import { demoEnabled, publicDemoEnabled } from "@/lib/demo";
 import "./globals.css";
 const geist=Geist({subsets:["latin"]});
 export const dynamic="force-dynamic";
@@ -17,4 +16,4 @@ export const metadata:Metadata={
   twitter:{card:"summary_large_image",title:`${brand.name} | Find your game`,description:brand.description},
   robots:{index:true,follow:true},
 };
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body className={geist.className}><Header/>{demoEnabled()&&<div className="demo-banner">{publicDemoEnabled()?"Public demo":"Private demo"} · Bookings use simulated payments. No real charge is made.</div>}{children}<Footer/></body></html>}
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body className={geist.className}><Header/>{children}<Footer/></body></html>}

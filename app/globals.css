@@ -51,3 +51,6 @@
 .admin-message{margin-bottom:10px}.admin-message>a{font-size:11px}.admin-message p{font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;margin:13px 0 0}
 .auth-login .auth-photo{order:2}.auth-login .auth-form-side{order:1}.auth-form-side{position:relative}.auth-logo{position:absolute;top:30px;left:8%}body:has(.auth-layout)>.site-header,body:has(.auth-layout)>.footer{display:none}.auth-layout{min-height:100vh}
 .advanced-filters{position:relative;min-height:40px;z-index:5}.advanced-filters>summary{list-style:none;cursor:pointer;border:1px solid var(--line);border-radius:5px;min-height:40px;padding:10px 12px;font-size:12px;font-weight:700;white-space:nowrap}.advanced-filters>summary::-webkit-details-marker{display:none}.advanced-filters>div{position:absolute;top:45px;right:0;width:220px;background:#fff;border:1px solid var(--line);box-shadow:0 10px 30px #0002;border-radius:6px;padding:15px;display:grid;gap:10px}.advanced-filters label{font-size:11px;font-weight:700}.advanced-filters label input,.advanced-filters label select{margin-top:4px}
+
+@media(max-width:760px){.hero-content{gap:28px}.hero-buttons{margin-bottom:4px}}
+.map-pin span{position:static;font-size:15px;font-weight:800;color:#fff}

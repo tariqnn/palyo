@@ -1,0 +1,3 @@
+"use client";
+import Link from "next/link";
+export default function ErrorPage({reset}:{error:Error;reset:()=>void}){return <main className="page"><div className="container" style={{maxWidth:560,textAlign:"center",padding:"60px 0"}}><span className="eyebrow muted">Something went wrong</span><h1 style={{fontSize:32,margin:"8px 0"}}>That didn&apos;t work</h1><p className="muted">Please try again. If it keeps happening, contact support and we&apos;ll sort it out.</p><div style={{display:"flex",gap:10,justifyContent:"center",marginTop:18,flexWrap:"wrap"}}><button className="btn btn-primary" onClick={reset} type="button">Try again</button><Link className="btn btn-outline" href="/support">Contact support</Link></div></div></main>}

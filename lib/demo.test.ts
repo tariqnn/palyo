@@ -1,26 +1,21 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { paymentProvider } from "./payment";
+import { demoEnabled, publicDemoEnabled } from "./demo";
 
 afterEach(()=>vi.unstubAllEnvs());
 
-describe("demo payment guard",()=>{
-  it("requires an explicitly enabled Preview or Production demo",async()=>{
-    vi.stubEnv("NODE_ENV","production");
-    vi.stubEnv("PLAYUP_PRIVATE_DEMO","1");
-    vi.stubEnv("PLAYUP_PUBLIC_DEMO","");
+describe("demo flags",()=>{
+  it("only enables the public demo on Production with the flag set",()=>{
     vi.stubEnv("VERCEL_ENV","production");
-    expect(()=>paymentProvider()).toThrow(/explicitly enabled demo/);
-    vi.stubEnv("VERCEL_ENV","preview");
-    await expect(paymentProvider().charge({amountFils:6000,currency:"JOD",idempotencyKey:"demo-test"})).resolves.toMatchObject({status:"PAID"});
-    vi.stubEnv("VERCEL_ENV","production");
+    vi.stubEnv("PLAYUP_PUBLIC_DEMO",undefined);
+    expect(demoEnabled()).toBe(false);
     vi.stubEnv("PLAYUP_PUBLIC_DEMO","1");
-    await expect(paymentProvider().charge({amountFils:6000,currency:"JOD",idempotencyKey:"public-demo-test"})).resolves.toMatchObject({status:"PAID"});
+    expect(publicDemoEnabled()).toBe(true);
   });
 
   it("accepts legacy PlayO Vercel flags during the rebrand",()=>{
-    vi.stubEnv("NODE_ENV","production");
     vi.stubEnv("VERCEL_ENV","production");
+    vi.stubEnv("PLAYUP_PUBLIC_DEMO",undefined);
     vi.stubEnv("PLAYO_PUBLIC_DEMO","1");
-    expect(paymentProvider()).toBeDefined();
+    expect(demoEnabled()).toBe(true);
   });
 });
