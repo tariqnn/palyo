@@ -16,7 +16,8 @@ export const signupSchema = z.object({
 }).refine(v=>v.password===v.confirm,{message:"Passwords do not match",path:["confirm"]});
 
 export async function currentUser():Promise<User|null> {
-  const token=(await cookies()).get("playo_session")?.value;
+  const jar=await cookies();
+  const token=jar.get("playup_session")?.value || jar.get("playo_session")?.value;
   if(!token) return null;
   return one<User>("SELECT u.id,u.name,u.username,u.email,u.role,u.avatar_url,u.xp,u.city FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now()",[tokenHash(token)]);
 }
@@ -33,14 +34,18 @@ export async function requireManager(gameId?:string):Promise<User> {
 export async function createSession(userId:string) {
   const token=randomBytes(32).toString("base64url");
   await query("INSERT INTO sessions(id,user_id,token_hash,expires_at) VALUES($1,$2,$3,now()+interval '30 days')",[randomUUID(),userId,tokenHash(token)]);
-  (await cookies()).set("playo_session",token,{httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:60*60*24*30});
+  (await cookies()).set("playup_session",token,{httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:60*60*24*30});
 }
-export async function signOut(){ const jar=await cookies(); const token=jar.get("playo_session")?.value; if(token) await query("DELETE FROM sessions WHERE token_hash=$1",[tokenHash(token)]); jar.delete("playo_session"); }
+export async function signOut(){ const jar=await cookies(); const token=jar.get("playup_session")?.value || jar.get("playo_session")?.value; if(token) await query("DELETE FROM sessions WHERE token_hash=$1",[tokenHash(token)]); jar.delete("playup_session"); jar.delete("playo_session"); }
 export async function login(email:string,password:string){
   const clean=email.trim().toLowerCase();
   const attempts=await one<{n:string}>("SELECT count(*)::text AS n FROM login_attempts WHERE email=$1 AND created_at>now()-interval '15 minutes'",[clean]);
   if(Number(attempts?.n||0)>=5)throw new Error("Too many attempts. Please try again in 15 minutes.");
-  const user=await one<{id:string;password_hash:string}>("SELECT id,password_hash FROM users WHERE email=$1",[clean]);
+  let user=await one<{id:string;password_hash:string}>("SELECT id,password_hash FROM users WHERE email=$1",[clean]);
+  if(!user && clean.endsWith("@playup.local")) {
+    const legacyEmail=`${clean.slice(0, -"@playup.local".length)}@playo.local`;
+    user=await one<{id:string;password_hash:string}>("SELECT id,password_hash FROM users WHERE email=$1",[legacyEmail]);
+  }
   if(!user||!(await compare(password,user.password_hash))){await query("INSERT INTO login_attempts(id,email) VALUES($1,$2)",[randomUUID(),clean]);throw new Error("Incorrect email or password.");}
   await query("DELETE FROM login_attempts WHERE email=$1",[clean]);
   await createSession(user.id);

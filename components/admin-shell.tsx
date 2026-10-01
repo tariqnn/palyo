@@ -23,5 +23,5 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
       { href: "/admin/analytics", label: "Analytics", icon: BarChart3 }
     ] : [])
   ];
-  return <main className="page admin-page"><div className="container admin-layout"><nav className="admin-nav" aria-label="Admin navigation"><div className="admin-nav-title"><strong>PLAYO Admin</strong><small>{admin ? "Platform management" : "Game management"}</small></div>{links.map(({ href, label, icon: Icon }) => <Link href={href} key={href}><Icon size={16}/>{label}</Link>)}</nav><div className="admin-content">{children}</div></div></main>;
+  return <main className="page admin-page"><div className="container admin-layout"><nav className="admin-nav" aria-label="Admin navigation"><div className="admin-nav-title"><strong>PlayUp Admin</strong><small>{admin ? "Platform management" : "Game management"}</small></div>{links.map(({ href, label, icon: Icon }) => <Link href={href} key={href}><Icon size={16}/>{label}</Link>)}</nav><div className="admin-content">{children}</div></div></main>;
 }

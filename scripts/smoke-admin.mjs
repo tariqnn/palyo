@@ -4,8 +4,8 @@ const context=await browser.newContext({baseURL:"http://localhost:3000"});
 const page=await context.newPage();
 try{
  await page.goto("/login");
- await page.getByLabel("Email").fill("organizer@playo.local");
- await page.getByLabel("Password").fill("PlayoDemo2026!");
+ await page.getByLabel("Email").fill("organizer@playup.local");
+ await page.getByLabel("Password").fill("PlayUpDemo2026!");
  await page.getByRole("button",{name:"Log In"}).click();
  await page.waitForURL("**/games",{timeout:15000});
  await page.goto("/admin/games/new");
@@ -23,11 +23,9 @@ try{
  console.log("PASS organizer create game");
  await page.getByRole("link",{name:"Open Scorekeeper"}).click();
  await page.getByRole("button",{name:"START",exact:true}).click();
- await page.waitForTimeout(400);
- if(!((await page.locator(".scorekeeper").innerText()).includes("Running")))throw new Error("Clock did not start");
+ await page.getByText(/· Running/).waitFor({timeout:15000});
  await page.getByRole("button",{name:"PAUSE",exact:true}).click();
- await page.waitForTimeout(400);
- if(!((await page.locator(".scorekeeper").innerText()).includes("Paused")))throw new Error("Clock did not pause");
+ await page.getByText(/· Paused/).waitFor({timeout:15000});
  console.log("PASS match clock start and pause");
  await page.getByRole("button",{name:"Record Event"}).click();
  await page.waitForTimeout(500);

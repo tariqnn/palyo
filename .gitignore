@@ -37,6 +37,10 @@ yarn-error.log*
 .playo-test-db/
 .playo-*/
 .playo-*.png
+.playup-db/
+.playup-test-db/
+.playup-*/
+.playup-*.png
 .migration-output.txt
 public/images/hero.jpg
 public/images/hero-color.jpg

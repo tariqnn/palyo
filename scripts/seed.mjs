@@ -4,12 +4,15 @@ import { hashSync } from "bcryptjs";
 import { readFile } from "node:fs/promises";
 import { randomBytes, randomUUID } from "node:crypto";
 
-const previewSeed=process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED==="1"&&process.env.PLAYO_PRIVATE_DEMO==="1"&&process.env.VERCEL_ENV==="preview";
-const publicSeed=process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED==="1"&&process.env.PLAYO_PUBLIC_DEMO==="1"&&process.env.VERCEL_ENV==="production";
+const privateDemo=process.env.PLAYUP_PRIVATE_DEMO??process.env.PLAYO_PRIVATE_DEMO;
+const publicDemo=process.env.PLAYUP_PUBLIC_DEMO??process.env.PLAYO_PUBLIC_DEMO;
+const adminPassword=process.env.PLAYUP_ADMIN_PASSWORD??process.env.PLAYO_ADMIN_PASSWORD;
+const previewSeed=process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED==="1"&&privateDemo==="1"&&process.env.VERCEL_ENV==="preview";
+const publicSeed=process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED==="1"&&publicDemo==="1"&&process.env.VERCEL_ENV==="production";
 if((process.env.NODE_ENV==="production"&&!previewSeed&&!publicSeed)||(process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED!=="1"))throw new Error("Demo seed requires an explicitly enabled demo database.");
-if(publicSeed&&(!process.env.PLAYO_ADMIN_PASSWORD||process.env.PLAYO_ADMIN_PASSWORD.length<20))throw new Error("The public demo needs a unique PLAYO_ADMIN_PASSWORD.");
+if(publicSeed&&(!adminPassword||adminPassword.length<20))throw new Error("The public demo needs a unique PLAYUP_ADMIN_PASSWORD.");
 
-const db = process.env.DATABASE_URL ? new pg.Client({ connectionString: process.env.DATABASE_URL }) : new PGlite(process.env.PLAYO_DB_DIR || ".playo-db");
+const db = process.env.DATABASE_URL ? new pg.Client({ connectionString: process.env.DATABASE_URL }) : new PGlite(process.env.PLAYUP_DB_DIR || process.env.PLAYO_DB_DIR || ".playup-db");
 if (process.env.DATABASE_URL) await db.connect();
 const q = (sql, values = []) => db.query(sql, values);
 await db.exec?.(await readFile("db/migrations/001_init.sql", "utf8"));
@@ -26,12 +29,12 @@ const image = {
 };
 const first = ["Tariq","Ahmad","Omar","Yousef","Kareem","Ali","Hassan","Sami","Lina","Sara","Noor","Maya","Rami","Zaid","Hadi","Adam","Malik","Rana","Dana","Faris","Nour","Yara","Khaled","Jad","Basil","Nadine","Leen","Salma","Ameer","Ibrahim","Laith","Rashed","Hamza","Rami","Fadi","Alaa","Hussein","Zain","Haya","Mariam","Zara","Ola","Yazan","Razan","Samer","Reem","Amal","Bilal","Nouran","Nader","Anas","Saba","Dalia","Mahmoud"];
 const last = ["Ahmed","Mansour","Haddad","Nasser","Khalil","Saleh","Odeh","Sabbagh","Fayez","Hamdan","Khatib","Abdullah"];
-const demoHash = hashSync(publicSeed ? randomBytes(32).toString("base64url") : "PlayoDemo2026!", 12);
-const adminHash = publicSeed ? hashSync(process.env.PLAYO_ADMIN_PASSWORD, 12) : demoHash;
+const demoHash = hashSync(publicSeed ? randomBytes(32).toString("base64url") : "PlayUpDemo2026!", 12);
+const adminHash = publicSeed ? hashSync(adminPassword, 12) : demoHash;
 const users = [];
 for (let i=0;i<first.length;i++) {
  const id=randomUUID(), name=`${first[i]} ${last[i%last.length]}`, username=i===0?"tariq":`${first[i].toLowerCase()}${i}`;
- const email=i<4?["player@playo.local","scorekeeper@playo.local","organizer@playo.local","admin@playo.local"][i]:`${username}@playo.local`;
+ const email=i<4?["player@playup.local","scorekeeper@playup.local","organizer@playup.local","admin@playup.local"][i]:`${username}@playup.local`;
  const role=i===1?"SCOREKEEPER":i===2?"ORGANIZER":i===3?"ADMIN":"PLAYER";
  await q("INSERT INTO users(id,name,username,email,password_hash,role,xp,avatar_url) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",[id,name,username,email,i===3?adminHash:demoHash,role,Math.max(0,4820-i*67),`https://i.pravatar.cc/120?img=${(i%70)+1}`]);
  users.push({id,name,username});
@@ -62,8 +65,8 @@ for(let i=0;i<42;i++) {
  for(let j=0;j<count;j++) {const user=users[(i+j)%users.length]; await q("INSERT INTO bookings(id,reference,game_id,user_id,status,payment_status,amount_fils,recording_acknowledged) VALUES($1,$2,$3,$4,'CONFIRMED','PAID',$5,true) ON CONFLICT DO NOTHING",[randomUUID(),`PLY-${String(i).padStart(2,"0")}${String(j).padStart(4,"0")}`,id,user.id,[6000,5000,5000,7000][i%4]]);}
 }
 for(let i=0;i<2;i++) await q("INSERT INTO tournaments(id,name,sport,description,starts_at,ends_at,image_url,status,season) VALUES($1,$2,$3,$4,$5,$6,$7,'OPEN',$8)",[randomUUID(),i?"Amman Basketball Cup":"Spring Season 2027",i?"basketball":"football","Join a season of competitive local sport.",new Date(Date.now()+20*86400000),new Date(Date.now()+100*86400000),image[i?"basketball":"football"],"Spring 2027"]);
-for(let i=0;i<8;i++) await q("INSERT INTO posts(id,user_id,body,game_id) VALUES($1,$2,$3,$4)",[randomUUID(),users[i].id,["Great games tonight! Who's in for basketball tomorrow?","New to PLAYO and already found my team.","Looking for tennis doubles partners this weekend.","What a finish at Al Reem Pitch! ⚽"][i%4],gameIds[i]]);
-await q("INSERT INTO notifications(id,user_id,type,title,body,href) VALUES($1,$2,'WELCOME','Welcome to PLAYO','Your next game is waiting.','/games')",[randomUUID(),users[0].id]);
+for(let i=0;i<8;i++) await q("INSERT INTO posts(id,user_id,body,game_id) VALUES($1,$2,$3,$4)",[randomUUID(),users[i].id,["Great games tonight! Who's in for basketball tomorrow?","New to PlayUp and already found my team.","Looking for tennis doubles partners this weekend.","What a finish at Al Reem Pitch! ⚽"][i%4],gameIds[i]]);
+await q("INSERT INTO notifications(id,user_id,type,title,body,href) VALUES($1,$2,'WELCOME','Welcome to PlayUp','Your next game is waiting.','/games')",[randomUUID(),users[0].id]);
 console.log(`Seeded ${users.length} players, ${venues.length} venues, ${gameIds.length} games, 2 tournaments, posts and bookings.`);
 await db.end?.(); await db.close?.();
 await import("./enrich-demo.mjs");

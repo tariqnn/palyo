@@ -1,8 +1,8 @@
-# PLAYO
+# PlayUp
 
 For Vercel Preview and public demo deployments, follow [the Vercel guide](docs/VERCEL.md).
 
-PLAYO is a responsive web platform for recreational football, basketball, dodgeball, and tennis in Amman. The visual system follows the supplied design reference: a dark photographic home page, compact white internal pages, and a restrained green accent.
+PlayUp is a responsive web platform for recreational football, basketball, dodgeball, and tennis in Amman. The visual system follows the supplied design reference: a dark photographic home page, compact white internal pages, and a restrained green accent.
 
 ## Stack
 
@@ -24,7 +24,7 @@ npm run db:seed
 npm run dev
 ```
 
-On Windows PowerShell, use `Copy-Item .env.example .env` instead of `cp` if preferred. Open http://localhost:3000. If `DATABASE_URL` is empty, the app stores data in `.playo-db/`. `PLAYO_DB_DIR` can point to another local PGlite directory. Seed data is idempotent; `npm run db:enrich` adds historical scores and competition data to an existing demo database.
+On Windows PowerShell, use `Copy-Item .env.example .env` instead of `cp` if preferred. Open http://localhost:3000. If `DATABASE_URL` is empty, the app stores data in `.playup-db/`. `PLAYUP_DB_DIR` can point to another local PGlite directory. Seed data is idempotent; `npm run db:enrich` adds historical scores and competition data to an existing demo database.
 
 The demo seed creates 54 fictional players, eight fictional venues, 42 games (27 future and 15 historical), two tournaments, bookings, ratings, score events, achievements, posts, notifications, and processing recording metadata. All prices are in JD.
 
@@ -32,10 +32,10 @@ The demo seed creates 54 fictional players, eight fictional venues, 42 games (27
 
 | Role | Email | Password |
 | --- | --- | --- |
-| Player | `player@playo.local` | `PlayoDemo2026!` |
-| Scorekeeper | `scorekeeper@playo.local` | `PlayoDemo2026!` |
-| Organizer | `organizer@playo.local` | `PlayoDemo2026!` |
-| Admin | `admin@playo.local` | `PlayoDemo2026!` |
+| Player | `player@playup.local` | `PlayUpDemo2026!` |
+| Scorekeeper | `scorekeeper@playup.local` | `PlayUpDemo2026!` |
+| Organizer | `organizer@playup.local` | `PlayUpDemo2026!` |
+| Admin | `admin@playup.local` | `PlayUpDemo2026!` |
 
 The public Production demo uses a separate database. Its sample players get unknown random passwords, and its admin password comes from a Vercel Secret; the credentials above do not work there. The seed script refuses an external `DATABASE_URL` unless `ALLOW_DEMO_SEED=1` is explicitly set. Never enable the demo seed against a live customer database.
 

@@ -5,8 +5,8 @@ const context=await browser.newContext({baseURL:"http://localhost:3000"});
 const page=await context.newPage();
 try{
   await page.goto("/login");
-  await page.getByLabel("Email").fill("salma27@playo.local");
-  await page.getByLabel("Password").fill("PlayoDemo2026!");
+  await page.getByLabel("Email").fill("salma27@playup.local");
+  await page.getByLabel("Password").fill("PlayUpDemo2026!");
   await page.getByRole("button",{name:"Log In"}).click();
   await page.waitForURL("**/games");
   await page.goto("/bookings?tab=past");

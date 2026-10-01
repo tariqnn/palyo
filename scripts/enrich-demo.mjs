@@ -3,11 +3,11 @@ import pg from "pg";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 
-const previewSeed=process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED==="1"&&process.env.PLAYO_PRIVATE_DEMO==="1"&&process.env.VERCEL_ENV==="preview";
-const publicSeed=process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED==="1"&&process.env.PLAYO_PUBLIC_DEMO==="1"&&process.env.VERCEL_ENV==="production";
+const previewSeed=process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED==="1"&&(process.env.PLAYUP_PRIVATE_DEMO??process.env.PLAYO_PRIVATE_DEMO)==="1"&&process.env.VERCEL_ENV==="preview";
+const publicSeed=process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED==="1"&&(process.env.PLAYUP_PUBLIC_DEMO??process.env.PLAYO_PUBLIC_DEMO)==="1"&&process.env.VERCEL_ENV==="production";
 if((process.env.NODE_ENV==="production"&&!previewSeed&&!publicSeed)||(process.env.DATABASE_URL&&process.env.ALLOW_DEMO_SEED!=="1"))throw new Error("Demo enrichment requires an explicitly enabled demo database.");
 
-const db=process.env.DATABASE_URL?new pg.Client({connectionString:process.env.DATABASE_URL}):new PGlite(process.env.PLAYO_DB_DIR||".playo-db");
+const db=process.env.DATABASE_URL?new pg.Client({connectionString:process.env.DATABASE_URL}):new PGlite(process.env.PLAYUP_DB_DIR||process.env.PLAYO_DB_DIR||".playup-db");
 if(process.env.DATABASE_URL)await db.connect();
 const schema=await readFile("db/migrations/001_init.sql","utf8");
 if(db.exec)await db.exec(schema);else await db.query(schema);

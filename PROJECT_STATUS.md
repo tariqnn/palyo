@@ -1,4 +1,4 @@
-# PLAYO project status
+# PlayUp project status
 
 ## Implemented
 
@@ -20,4 +20,4 @@
 
 ## Local database note
 
-This machine has no Docker or PostgreSQL service, so local development uses embedded PGlite. An earlier local database failed to reopen after the dev server ended. It was preserved as `.playo-db-backup-20260930/` and a fresh `.playo-db/` was seeded; migration and browser checks then passed. Both directories are excluded from Git.
+This machine has no Docker or PostgreSQL service, so local development uses embedded PGlite. An earlier local database failed to reopen after the dev server ended. It was preserved as `.playup-db-backup-20260930/` and a fresh `.playup-db/` was seeded; migration and browser checks then passed. Both directories are excluded from Git.

@@ -15,7 +15,7 @@ export async function generateMetadata({params}:{params:Promise<{id:string}>}):P
 type Waitlist={position:number;status:string};
 type Recording={id:string;status:string};
 type Review={id:string;user_id:string;name:string;venue_rating:number;organization_rating:number;experience_rating:number;body:string|null;created_at:string};
-function BookingForm({id,price,spots,recordingEnabled}:{id:string;price:number;spots:number;recordingEnabled:boolean}){return <form action={bookAction}><input type="hidden" name="gameId" value={id}/>{recordingEnabled&&<label className="check-row"><input type="checkbox" name="recordingAck" required/><span>This game may be livestreamed and recorded. I understand the recording may remain available on PLAYO.</span></label>}<button className="btn btn-primary btn-block" type="submit">{spots===0?"Join Waitlist":`Join Game — ${money(price)}`}</button></form>}
+function BookingForm({id,price,spots,recordingEnabled}:{id:string;price:number;spots:number;recordingEnabled:boolean}){return <form action={bookAction}><input type="hidden" name="gameId" value={id}/>{recordingEnabled&&<label className="check-row"><input type="checkbox" name="recordingAck" required/><span>This game may be livestreamed and recorded. I understand the recording may remain available on PlayUp.</span></label>}<button className="btn btn-primary btn-block" type="submit">{spots===0?"Join Waitlist":`Join Game — ${money(price)}`}</button></form>}
 export default async function GameDetail({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{tab?:string;error?:string;notice?:string}>}){
  const {id}=await params;const {tab="overview",error,notice}=await searchParams;
  const [g,user]=await Promise.all([getGame(id),currentUser()]);if(!g)notFound();

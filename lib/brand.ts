@@ -1,9 +1,9 @@
 export const brand = {
-  name: "PLAYO",
+  name: "PlayUp",
   description: "Find your game. Play your sport.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   color: "#22e879",
-  supportEmail: "hello@playo.example",
+  supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL,
   social: { instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL, x: process.env.NEXT_PUBLIC_X_URL },
 } as const;
 

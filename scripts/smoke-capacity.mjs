@@ -1,9 +1,9 @@
 import { chromium } from "playwright";
 const browser=await chromium.launch({channel:"chrome",headless:true});
 const baseURL="http://localhost:3000";
-async function signedIn(email){const context=await browser.newContext({baseURL});const page=await context.newPage();await page.goto("/login");await page.getByLabel("Email").fill(email);await page.getByLabel("Password").fill("PlayoDemo2026!");await page.getByRole("button",{name:"Log In"}).click();await page.waitForURL("**/games",{timeout:15000});return {context,page};}
+async function signedIn(email){const context=await browser.newContext({baseURL});const page=await context.newPage();await page.goto("/login");await page.getByLabel("Email").fill(email);await page.getByLabel("Password").fill("PlayUpDemo2026!");await page.getByRole("button",{name:"Log In"}).click();await page.waitForURL("**/games",{timeout:15000});return {context,page};}
 try{
- const organizer=await signedIn("organizer@playo.local");
+ const organizer=await signedIn("organizer@playup.local");
  await organizer.page.goto("/admin/games/new");
  await organizer.page.locator('select[name="sport"]').selectOption("tennis");
  await organizer.page.locator('input[name="format"]').fill("Singles");
@@ -17,7 +17,7 @@ try{
  await organizer.page.getByRole("button",{name:"Publish Game"}).click();
  await organizer.page.waitForURL(url=>/^\/admin\/games\/[0-9a-f-]{36}$/.test(new URL(url).pathname),{timeout:15000});
  const gameId=organizer.page.url().split("/").at(-1);
- const player=await signedIn("player@playo.local"),scorekeeper=await signedIn("scorekeeper@playo.local"),admin=await signedIn("admin@playo.local");
+ const player=await signedIn("player@playup.local"),scorekeeper=await signedIn("scorekeeper@playup.local"),admin=await signedIn("admin@playup.local");
  await player.page.goto(`/games/${gameId}`);
  if(!(await player.page.getByRole("button",{name:/Join Game/}).count()))throw new Error("New game cannot be booked: "+player.page.url()+" "+(await player.page.locator("body").innerText()).slice(0,500));
  await player.page.getByRole("button",{name:/Join Game/}).click();

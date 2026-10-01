@@ -7,5 +7,5 @@ export async function sendResetEmail(to:string,url:string){
     return;
   }
   const transporter=nodemailer.createTransport({host:process.env.SMTP_HOST,port:Number(process.env.SMTP_PORT||587),secure:Number(process.env.SMTP_PORT||587)===465,auth:{user:process.env.SMTP_USER,pass:process.env.SMTP_PASSWORD}});
-  await transporter.sendMail({from:process.env.SMTP_FROM,to,subject:"Reset your PLAYO password",text:`Use this link to reset your password. It expires in one hour.\n\n${url}`});
+  await transporter.sendMail({from:process.env.SMTP_FROM,to,subject:"Reset your PlayUp password",text:`Use this link to reset your password. It expires in one hour.\n\n${url}`});
 }
