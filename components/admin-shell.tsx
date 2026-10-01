@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Activity, BarChart3, CalendarDays, CreditCard, LayoutDashboard, Mail, MapPin, MessageSquare, Radio, Trophy, Users } from "lucide-react";
+import { Activity, BarChart3, CalendarDays, Compass, CreditCard, GraduationCap, LayoutDashboard, Mail, MapPin, MessageSquare, Radio, Trophy, Users } from "lucide-react";
 import { currentUser } from "@/lib/auth";
 
 export async function AdminShell({ children }: { children: React.ReactNode }) {
@@ -16,6 +16,8 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
     ...(admin ? [
       { href: "/admin/users", label: "Members", icon: Users },
       { href: "/admin/venues", label: "Venues", icon: MapPin },
+      { href: "/admin/academies", label: "Academies", icon: GraduationCap },
+      { href: "/admin/activities", label: "Activities", icon: Compass },
       { href: "/admin/tournaments", label: "Tournaments", icon: Trophy },
       { href: "/admin/community", label: "Content review", icon: MessageSquare },
       { href: "/admin/activity", label: "Staff activity", icon: Activity },

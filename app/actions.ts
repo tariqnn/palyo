@@ -152,3 +152,40 @@ export async function academyProfileAction(form:FormData){
   try{const input=z.object({name:z.string().trim().min(3).max(100),description:z.string().trim().min(20).max(2000),phone:z.string().trim().max(30),email:z.email()}).parse({name:form.get("name"),description:form.get("description"),phone:form.get("phone")||"",email:form.get("email")});await query("UPDATE academies SET name=$1,description=$2,phone=$3,email=$4 WHERE id=$5",[input.name,input.description,input.phone,input.email,access.academyId]);}catch(e){error=errorText(e);}
   revalidatePath("/academy");redirect(error?`/academy/profile?error=${encodeURIComponent(error)}`:"/academy/profile?notice=Academy%20profile%20updated");
 }
+
+/* ---------- Admin catalogue management (venues, academies, activities) ---------- */
+async function requirePlatformAdmin(){const user=await currentUser();if(!user)redirect("/login");if(!["ADMIN","SUPER_ADMIN"].includes(user.role))redirect("/admin");return user;}
+const list=(v:FormDataEntryValue|null)=>String(v||"").split(/[\n,]/).map(x=>x.trim()).filter(Boolean).slice(0,30);
+const text=(v:FormDataEntryValue|null,max=2000)=>String(v||"").trim().slice(0,max);
+const imageOf=(f:FormData)=>String(f.get("imagePreset")||f.get("imageUrl")||"");
+const imageField=(v:string)=>{const u=v.trim();if(/^\/images\/[\w.-]+$/.test(u)||/^https:\/\/images\.unsplash\.com\//.test(u))return u;throw new Error("Choose a PlayUp image or paste an images.unsplash.com link.");};
+const jd=(v:FormDataEntryValue|null)=>{const n=Number(v);if(!Number.isFinite(n)||n<0)throw new Error("Enter a valid price in JD.");return Math.round(n*1000);};
+const num=(v:FormDataEntryValue|null)=>{const s=String(v||"").trim();if(!s)return null;const n=Number(s);if(!Number.isFinite(n))throw new Error("Enter valid coordinates.");return n;};
+function adminDone(path:string,error:string,notice:string){redirect(error?`${path}?error=${encodeURIComponent(error)}`:`${path}?notice=${encodeURIComponent(notice)}`);}
+
+export async function saveActivityAction(form:FormData){let error="";try{const user=await requirePlatformAdmin();const id=text(form.get("id"),60)||randomUUID();
+  const title=text(form.get("title"),120),area=text(form.get("area"),120),category=text(form.get("category"),40),description=text(form.get("description"));
+  if(title.length<3||area.length<2||category.length<2||description.length<10)throw new Error("Title, category, location and a description are required.");
+  const row=[id,title,category,area,description,imageField(imageOf(form)),jd(form.get("price")),Math.max(15,Math.round(Number(form.get("duration"))||120)),text(form.get("difficulty"),40)||"All levels",Math.max(1,Math.round(Number(form.get("capacity"))||10)),text(form.get("operatorName"),120),text(form.get("operatorPhone"),40)||null,text(form.get("badge"),40),list(form.get("includes")),text(form.get("priceUnit"),30)||"person"];
+  await query(`INSERT INTO activities(id,title,category,area,description,image_url,price_fils,duration_minutes,difficulty,capacity,operator_name,operator_phone,badge,includes,price_unit) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+   ON CONFLICT(id) DO UPDATE SET title=$2,category=$3,area=$4,description=$5,image_url=$6,price_fils=$7,duration_minutes=$8,difficulty=$9,capacity=$10,operator_name=$11,operator_phone=$12,badge=$13,includes=$14,price_unit=$15`,row);
+  await query("INSERT INTO audit_logs(id,actor_id,action,entity,entity_id) VALUES($1,$2,'ACTIVITY_SAVED','activity',$3)",[randomUUID(),user.id,id]);revalidatePath("/activities");}catch(e){error=errorText(e);}adminDone("/admin/activities",error,"Activity saved");}
+
+export async function saveAcademyAction(form:FormData){let error="";try{const user=await requirePlatformAdmin();const id=text(form.get("id"),60)||randomUUID();
+  const name=text(form.get("name"),120),area=text(form.get("area"),120),address=text(form.get("address"),200);
+  if(name.length<3||area.length<2||address.length<3)throw new Error("Name, area and address are required.");
+  await query(`INSERT INTO academies(id,name,area,address,description,sports,image_url,rating,verified,phone,email,website,training_packages,featured,latitude,longitude) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+   ON CONFLICT(id) DO UPDATE SET name=$2,area=$3,address=$4,description=$5,sports=$6,image_url=$7,verified=$9,phone=$10,email=$11,website=$12,training_packages=$13,featured=$14,latitude=$15,longitude=$16`,
+   [id,name,area,address,text(form.get("description")),list(form.get("sports")).map(s=>s.toLowerCase()),imageField(imageOf(form)),0,form.get("verified")==="on",text(form.get("phone"),40)||null,text(form.get("email"),120)||null,text(form.get("website"),200)||null,list(form.get("packages")),form.get("featured")==="on",num(form.get("latitude")),num(form.get("longitude"))]);
+  await query("INSERT INTO audit_logs(id,actor_id,action,entity,entity_id) VALUES($1,$2,'ACADEMY_SAVED','academy',$3)",[randomUUID(),user.id,id]);revalidatePath("/academies");}catch(e){error=errorText(e);}adminDone("/admin/academies",error,"Academy saved");}
+
+export async function saveVenueAction(form:FormData){let error="";try{const user=await requirePlatformAdmin();const id=text(form.get("id"),60)||randomUUID();
+  const name=text(form.get("name"),120),area=text(form.get("area"),120),address=text(form.get("address"),200),sports=list(form.get("sports")).map(s=>s.toLowerCase());
+  if(name.length<3||area.length<2||address.length<3||!sports.length)throw new Error("Name, area, address and at least one sport are required.");
+  const academy=text(form.get("academyId"),60)||null;
+  await query(`INSERT INTO venues(id,name,area,address,sports,amenities,image_url,latitude,longitude,rating,demo,academy_id,hourly_rate_fils) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,0,FALSE,$10,$11)
+   ON CONFLICT(id) DO UPDATE SET name=$2,area=$3,address=$4,sports=$5,amenities=$6,image_url=$7,latitude=$8,longitude=$9,demo=FALSE,academy_id=$10,hourly_rate_fils=$11`,
+   [id,name,area,address,sports,list(form.get("amenities")),imageField(imageOf(form)),num(form.get("latitude")),num(form.get("longitude")),academy,jd(form.get("hourlyRate"))]);
+  await query("INSERT INTO audit_logs(id,actor_id,action,entity,entity_id) VALUES($1,$2,'VENUE_SAVED','venue',$3)",[randomUUID(),user.id,id]);revalidatePath("/venues");}catch(e){error=errorText(e);}adminDone("/admin/venues",error,"Venue saved");}
+
+export async function setCatalogueActiveAction(form:FormData){let error="";const table=String(form.get("table")),id=String(form.get("id")),next=form.get("active")==="1";try{await requirePlatformAdmin();if(!["activities","academies","venues"].includes(table))throw new Error("Unknown item.");await query(`UPDATE ${table} SET active=$1 WHERE id=$2`,[next,id]);revalidatePath(`/${table==="activities"?"activities":table}`);}catch(e){error=errorText(e);}adminDone(`/admin/${table}`,error,next?"Item is live":"Item hidden from the public site");}

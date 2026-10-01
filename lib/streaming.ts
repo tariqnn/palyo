@@ -16,7 +16,7 @@ const mockProvider:StreamingProvider={
   async getStatus(){return "SCHEDULED";}, async endStream(){}, async getPlayback(){return null;},
   async getRecording(){return null;}, async deleteRecording(){},
 };
-export function streamingProvider():StreamingProvider {if(process.env.STREAM_PROVIDER&&process.env.STREAM_PROVIDER!=="mock")throw new Error("Streaming provider is not configured.");if(process.env.NODE_ENV==="production"&&!demoEnabled())throw new Error("Mock streaming requires an explicitly enabled demo environment.");return mockProvider;}
+export function streamingProvider():StreamingProvider {if(process.env.STREAM_PROVIDER&&process.env.STREAM_PROVIDER!=="mock")throw new Error("Live streaming is not enabled yet.");if(process.env.NODE_ENV==="production"&&!demoEnabled())throw new Error("Live streaming is not enabled yet.");return mockProvider;}
 export async function createGameStream(gameId:string,visibility:Visibility){
   const existing=await one("SELECT id FROM streams WHERE game_id=$1",[gameId]);if(existing)throw new Error("This game already has a stream.");
   const provider=await streamingProvider().createStream(gameId),id=randomUUID();

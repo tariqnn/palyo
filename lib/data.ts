@@ -29,6 +29,6 @@ export async function getGames(filters:{sport?:string;q?:string;skill?:string;so
   return {rows,total:Number(count?.count||0),page,pages:Math.max(1,Math.ceil(Number(count?.count||0)/12))};
 }
 export function getGame(id:string){return one<Game>("SELECT g.*,v.name AS venue_name,v.area,v.address,u.name AS organizer_name FROM games g JOIN venues v ON v.id=g.venue_id JOIN users u ON u.id=g.organizer_id WHERE g.id=$1",[id]);}
-export function getVenues(){return query<Venue>("SELECT * FROM venues ORDER BY name");}
+export function getVenues(){return query<Venue>("SELECT * FROM venues WHERE active=TRUE ORDER BY name");}
 export function getVenue(id:string){return one<Venue>("SELECT * FROM venues WHERE id=$1",[id]);}
 export function getProfile(username:string){return one<Profile>("SELECT id,name,username,avatar_url,xp,city,created_at FROM users WHERE username=$1",[username]);}
