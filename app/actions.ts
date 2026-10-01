@@ -11,6 +11,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { createGameStream,endGameStream,type Visibility } from "@/lib/streaming";
 import { DateTime } from "luxon";
+import { requireAcademyAccess } from "@/lib/academy";
 
 const errorText=(e:unknown)=>e instanceof Error?e.message:"Something went wrong. Please try again.";
 async function organizerFor(gameId:string){const user=await requireManager(gameId);const game=await one<{organizer_id:string}>("SELECT organizer_id FROM games WHERE id=$1",[gameId]);if(!game||!(game.organizer_id===user.id||["ADMIN","SUPER_ADMIN"].includes(user.role)))throw new Error("Organizer access is required.");return user;}
@@ -33,7 +34,7 @@ export async function undoAction(form:FormData){const id=String(form.get("gameId
 export async function finalizeAction(form:FormData){const id=String(form.get("gameId"));let error="";try{const user=await requireManager(id);await finalizeGame(id,user.id);}catch(e){error=errorText(e);}revalidatePath(`/games/${id}`);redirect(error?`/admin/games/${id}/scorekeeper?error=${encodeURIComponent(error)}`:`/games/${id}/score?notice=Result%20final`);}
 export async function teamsAction(form:FormData){const id=String(form.get("gameId"));let error="";try{await organizerFor(id);await generateTeams(id);}catch(e){error=errorText(e);}redirect(error?`/admin/games/${id}?error=${encodeURIComponent(error)}`:`/admin/games/${id}?notice=Teams%20generated`);}
 const gameSchema=z.object({sport:z.enum(["football","basketball","dodgeball","tennis"]),title:z.string().min(5),format:z.string().min(2),venueId:z.string().uuid(),startsAt:z.iso.datetime({local:true}),capacity:z.coerce.number().int().min(2).max(100),price:z.coerce.number().min(0).max(100),skill:z.string(),description:z.string().max(2000),recordingEnabled:z.boolean(),tennisBestOf:z.enum(["3","5"]).default("3"),tennisTiebreak:z.boolean()});
-export async function createGameAction(form:FormData){const user=await currentUser();if(!user)redirect("/login");if(!["ORGANIZER","ADMIN","SUPER_ADMIN"].includes(user.role))redirect("/admin?error=Organizer%20access%20required");let error="",id="";try{const input=gameSchema.parse({sport:form.get("sport"),title:form.get("title"),format:form.get("format"),venueId:form.get("venueId"),startsAt:form.get("startsAt"),capacity:form.get("capacity"),price:form.get("price"),skill:form.get("skill"),description:form.get("description"),recordingEnabled:form.get("recordingEnabled")==="on",tennisBestOf:form.get("tennisBestOf")||"3",tennisTiebreak:form.get("tennisTiebreak")==="on"});const venue=await one<{image_url:string}>("SELECT image_url FROM venues WHERE id=$1 AND $2=ANY(sports)",[input.venueId,input.sport]);if(!venue)throw new Error("Choose a venue that supports this sport.");const zoned=DateTime.fromISO(input.startsAt,{zone:"Asia/Amman"});if(!zoned.isValid||zoned.toMillis()<=Date.now())throw new Error("Choose a future start time in Amman.");id=randomUUID();const start=zoned.toJSDate();await query("INSERT INTO games(id,sport,title,format,description,venue_id,organizer_id,starts_at,ends_at,capacity,price_fils,skill,image_url,recording_enabled,stream_enabled,score_config) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$14,$15)",[id,input.sport,input.title,input.format,input.description,input.venueId,user.id,start,new Date(start.getTime()+90*60000),input.capacity,Math.round(input.price*1000),input.skill,venue.image_url,input.recordingEnabled,JSON.stringify(input.sport==="tennis"?{tennisBestOf:Number(input.tennisBestOf),tennisTiebreak:input.tennisTiebreak}:{})]);}catch(e){error=errorText(e);}redirect(error?`/admin/games/new?error=${encodeURIComponent(error)}`:`/admin/games/${id}`);}
+export async function createGameAction(form:FormData){const user=await currentUser();if(!user)redirect("/login");const playerFlow=form.get("source")==="player";if(!playerFlow&&!["ORGANIZER","ADMIN","SUPER_ADMIN"].includes(user.role))redirect("/admin?error=Organizer%20access%20required");let error="",id="";try{const input=gameSchema.parse({sport:form.get("sport"),title:form.get("title"),format:form.get("format"),venueId:form.get("venueId"),startsAt:form.get("startsAt"),capacity:form.get("capacity"),price:form.get("price"),skill:form.get("skill"),description:form.get("description"),recordingEnabled:form.get("recordingEnabled")==="on",tennisBestOf:form.get("tennisBestOf")||"3",tennisTiebreak:form.get("tennisTiebreak")==="on"});const venue=await one<{image_url:string}>("SELECT image_url FROM venues WHERE id=$1 AND $2=ANY(sports)",[input.venueId,input.sport]);if(!venue)throw new Error("Choose a venue that supports this sport.");const zoned=DateTime.fromISO(input.startsAt,{zone:"Asia/Amman"});if(!zoned.isValid||zoned.toMillis()<=Date.now())throw new Error("Choose a future start time in Amman.");id=randomUUID();const start=zoned.toJSDate();await query("INSERT INTO games(id,sport,title,format,description,venue_id,organizer_id,starts_at,ends_at,capacity,price_fils,skill,image_url,recording_enabled,stream_enabled,score_config) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$14,$15)",[id,input.sport,input.title,input.format,input.description,input.venueId,user.id,start,new Date(start.getTime()+90*60000),input.capacity,Math.round(input.price*1000),input.skill,venue.image_url,input.recordingEnabled,JSON.stringify(input.sport==="tennis"?{tennisBestOf:Number(input.tennisBestOf),tennisTiebreak:input.tennisTiebreak}:{})]);}catch(e){error=errorText(e);}if(playerFlow)redirect(error?`/matches/create?error=${encodeURIComponent(error)}`:`/games/${id}?notice=Match%20created`);redirect(error?`/admin/games/new?error=${encodeURIComponent(error)}`:`/admin/games/${id}`);}
 export async function postAction(form:FormData){const user=await currentUser();if(!user)redirect("/login");const body=String(form.get("body")||"").trim();if(body.length>0&&body.length<=1000)await query("INSERT INTO posts(id,user_id,body) VALUES($1,$2,$3)",[randomUUID(),user.id,body]);revalidatePath("/community");redirect("/community");}
 export async function likeAction(form:FormData){const user=await currentUser();if(!user)redirect("/login");await query("INSERT INTO post_likes(post_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING",[String(form.get("postId")),user.id]);revalidatePath("/community");redirect("/community");}
 export async function commentAction(form:FormData){const user=await currentUser();if(!user)redirect("/login");const body=String(form.get("body")||"").trim();if(body.length>0&&body.length<=500)await query("INSERT INTO post_comments(id,post_id,user_id,body) VALUES($1,$2,$3,$4)",[randomUUID(),String(form.get("postId")),user.id,body]);revalidatePath("/community");redirect("/community");}
@@ -71,4 +72,82 @@ export async function adminDeletePostAction(form: FormData) {
   revalidatePath("/community");
   revalidatePath("/admin/community");
   redirect("/admin/community?notice=Post%20removed");
+}
+
+export async function updateProfileAction(form:FormData){
+  const user=await currentUser();if(!user)redirect("/login");let error="";
+  try{const input=z.object({name:z.string().trim().min(2).max(80),city:z.string().trim().min(2).max(80),bio:z.string().trim().max(500)}).parse({name:form.get("name"),city:form.get("city"),bio:form.get("bio")||""});await query("UPDATE users SET name=$1,city=$2,bio=$3 WHERE id=$4",[input.name,input.city,input.bio,user.id]);}catch(e){error=errorText(e);}
+  revalidatePath(`/profile/${user.username}`);redirect(error?`/settings/profile?error=${encodeURIComponent(error)}`:"/settings/profile?notice=Profile%20updated");
+}
+
+export async function friendRequestAction(form:FormData){
+  const user=await currentUser();if(!user)redirect("/login");const target=String(form.get("userId")||"");let error="";
+  try{if(target===user.id)throw new Error("You cannot add yourself.");const reverse=await one<{id:string;status:string}>("SELECT id,status FROM friendships WHERE requester_id=$1 AND addressee_id=$2",[target,user.id]);if(reverse?.status==="PENDING")await query("UPDATE friendships SET status='ACCEPTED',updated_at=now() WHERE id=$1",[reverse.id]);else await query("INSERT INTO friendships(id,requester_id,addressee_id) VALUES($1,$2,$3) ON CONFLICT(requester_id,addressee_id) DO NOTHING",[randomUUID(),user.id,target]);}catch(e){error=errorText(e);}
+  revalidatePath("/friends");redirect(error?`/friends?tab=suggested&error=${encodeURIComponent(error)}`:"/friends?tab=suggested&notice=Request%20sent");
+}
+
+export async function friendRespondAction(form:FormData){
+  const user=await currentUser();if(!user)redirect("/login");const id=String(form.get("id")||""),accept=form.get("decision")==="accept";
+  await query("UPDATE friendships SET status=$1,updated_at=now() WHERE id=$2 AND addressee_id=$3 AND status='PENDING'",[accept?"ACCEPTED":"DECLINED",id,user.id]);
+  revalidatePath("/friends");redirect(`/friends?tab=requests&notice=${accept?"Friend%20added":"Request%20declined"}`);
+}
+
+export async function redeemOfferAction(form:FormData){
+  const user=await currentUser();if(!user)redirect("/login");const offerId=String(form.get("offerId")||"");let error="";
+  try{await transaction(async tx=>{const offer=(await tx.query("SELECT points_cost,active,expires_at FROM offers WHERE id=$1 FOR UPDATE",[offerId])).rows[0];const account=(await tx.query("SELECT xp FROM users WHERE id=$1 FOR UPDATE",[user.id])).rows[0];if(!offer||!offer.active||(offer.expires_at&&new Date(String(offer.expires_at))<new Date()))throw new Error("This reward is no longer available.");if(Number(account.xp)<Number(offer.points_cost))throw new Error("You need more points for this reward.");const exists=(await tx.query("SELECT id FROM reward_redemptions WHERE offer_id=$1 AND user_id=$2",[offerId,user.id])).rows[0];if(exists)throw new Error("You already redeemed this reward.");await tx.query("UPDATE users SET xp=xp-$1 WHERE id=$2",[offer.points_cost,user.id]);await tx.query("INSERT INTO reward_redemptions(id,offer_id,user_id,code,points_spent) VALUES($1,$2,$3,$4,$5)",[randomUUID(),offerId,user.id,`PU-${randomUUID().slice(0,8).toUpperCase()}`,offer.points_cost]);});}catch(e){error=errorText(e);}
+  revalidatePath("/rewards");revalidatePath("/wallet");redirect(error?`/rewards?error=${encodeURIComponent(error)}`:"/wallet?notice=Reward%20added%20to%20your%20wallet");
+}
+
+export async function bookCourtAction(form:FormData){
+  const user=await currentUser();if(!user)redirect("/login");const venueId=String(form.get("venueId")||"");let error="",reference="";
+  try{const input=z.object({date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),time:z.string().regex(/^\d{2}:\d{2}$/),duration:z.coerce.number().refine(v=>[60,90,120].includes(v)),participants:z.coerce.number().int().min(1).max(30)}).parse({date:form.get("date"),time:form.get("time"),duration:form.get("duration"),participants:form.get("participants")});const start=DateTime.fromISO(`${input.date}T${input.time}`,{zone:"Asia/Amman"});if(!start.isValid||start.toMillis()<Date.now()+30*60*1000)throw new Error("Choose an available future time.");const end=start.plus({minutes:input.duration});await transaction(async tx=>{const venue=(await tx.query("SELECT hourly_rate_fils FROM venues WHERE id=$1 FOR UPDATE",[venueId])).rows[0];if(!venue)throw new Error("Venue not found.");const clash=(await tx.query("SELECT id FROM court_bookings WHERE venue_id=$1 AND status<>'CANCELLED' AND starts_at<$3 AND ends_at>$2 LIMIT 1",[venueId,start.toJSDate(),end.toJSDate()])).rows[0];if(clash)throw new Error("That time was just booked. Please choose another slot.");reference=`COURT-${randomUUID().slice(0,8).toUpperCase()}`;await tx.query("INSERT INTO court_bookings(id,reference,venue_id,user_id,starts_at,ends_at,amount_fils,participant_count) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",[randomUUID(),reference,venueId,user.id,start.toJSDate(),end.toJSDate(),Math.round(Number(venue.hourly_rate_fils)*input.duration/60),input.participants]);});}catch(e){error=errorText(e);}
+  revalidatePath("/bookings");redirect(error?`/venues/${venueId}/book?error=${encodeURIComponent(error)}`:`/bookings?type=courts&notice=${encodeURIComponent(`Court booked. Reference ${reference}`)}`);
+}
+
+export async function cancelCourtBookingAction(form:FormData){
+  const user=await currentUser();if(!user)redirect("/login");const id=String(form.get("bookingId")||""),reason=String(form.get("reason")||"Plans changed").trim().slice(0,300);
+  await query("UPDATE court_bookings SET status='CANCELLED',cancellation_reason=$1 WHERE id=$2 AND user_id=$3 AND starts_at>now() AND status<>'CANCELLED'",[reason,id,user.id]);revalidatePath("/bookings");redirect("/bookings?type=courts&notice=Court%20booking%20cancelled");
+}
+
+export async function bookActivityAction(form:FormData){
+  const user=await currentUser();if(!user)redirect("/login");const activityId=String(form.get("activityId")||"");let error="";
+  try{const participants=z.coerce.number().int().min(1).max(8).parse(form.get("participants"));const date=z.string().regex(/^\d{4}-\d{2}-\d{2}$/).parse(form.get("date"));const activity=await one<{price_fils:number;capacity:number}>("SELECT price_fils,capacity FROM activities WHERE id=$1 AND active=TRUE",[activityId]);if(!activity)throw new Error("Activity not found.");const scheduled=DateTime.fromISO(`${date}T08:00`,{zone:"Asia/Amman"});if(scheduled.toMillis()<Date.now())throw new Error("Choose a future date.");await query("INSERT INTO activity_bookings(id,activity_id,user_id,scheduled_for,participants,amount_fils) VALUES($1,$2,$3,$4,$5,$6)",[randomUUID(),activityId,user.id,scheduled.toJSDate(),participants,activity.price_fils*participants]);}catch(e){error=errorText(e);}
+  redirect(error?`/activities?error=${encodeURIComponent(error)}`:"/activities?notice=Adventure%20booked%20-%20pay%20at%20the%20meeting%20point");
+}
+
+export async function sendMatchMessageAction(form:FormData){
+  const user=await currentUser();if(!user)redirect("/login");const gameId=String(form.get("gameId")||""),body=String(form.get("body")||"").trim();let error="";
+  try{if(body.length<1||body.length>500)throw new Error("Write a message of up to 500 characters.");const access=await one("SELECT g.id FROM games g WHERE g.id=$1 AND (g.organizer_id=$2 OR EXISTS(SELECT 1 FROM bookings b WHERE b.game_id=g.id AND b.user_id=$2 AND b.status IN ('CONFIRMED','COMPLETED'))) ",[gameId,user.id]);if(!access)throw new Error("Join this match to use its chat.");await query("INSERT INTO match_messages(id,game_id,user_id,body) VALUES($1,$2,$3,$4)",[randomUUID(),gameId,user.id,body]);}catch(e){error=errorText(e);}
+  revalidatePath(`/games/${gameId}/chat`);redirect(error?`/games/${gameId}/chat?error=${encodeURIComponent(error)}`:`/games/${gameId}/chat`);
+}
+
+export async function savePreferencesAction(form:FormData){
+  const user=await currentUser();if(!user)redirect("/login");const section=String(form.get("section"));
+  if(section==="notifications")await query("UPDATE users SET notification_preferences=$1 WHERE id=$2",[JSON.stringify({booking:form.get("booking")==="on",matches:form.get("matches")==="on",rewards:form.get("rewards")==="on",community:form.get("community")==="on"}),user.id]);
+  if(section==="privacy")await query("UPDATE users SET privacy_preferences=$1 WHERE id=$2",[JSON.stringify({profile:String(form.get("profile")||"public"),activity:form.get("activity")==="on",friendRequests:form.get("friendRequests")==="on"}),user.id]);
+  redirect(`/settings/${section}?notice=Preferences%20saved`);
+}
+
+export async function supportTicketAction(form:FormData){
+  const user=await currentUser();if(!user)redirect("/login");let error="";
+  try{const input=z.object({category:z.string().min(2).max(80),body:z.string().trim().min(10).max(2000)}).parse({category:form.get("category"),body:form.get("body")});await query("INSERT INTO support_tickets(id,user_id,category,body) VALUES($1,$2,$3,$4)",[randomUUID(),user.id,input.category,input.body]);}catch(e){error=errorText(e);}
+  redirect(error?`/support?error=${encodeURIComponent(error)}`:"/support?notice=Support%20ticket%20submitted");
+}
+
+export async function academyBookingAction(form:FormData){
+  const access=await requireAcademyAccess();const id=String(form.get("bookingId")||""),command=z.enum(["CONFIRM","CHECK_IN","COMPLETE","CANCEL","COLLECT_CASH"]).parse(form.get("command"));let error="";
+  try{await transaction(async tx=>{const booking=(await tx.query("SELECT b.*,v.academy_id FROM court_bookings b JOIN venues v ON v.id=b.venue_id WHERE b.id=$1 FOR UPDATE",[id])).rows[0];if(!booking||booking.academy_id!==access.academyId)throw new Error("Booking not found for your academy.");if(command==="CHECK_IN")await tx.query("UPDATE court_bookings SET checked_in_at=now(),status='CHECKED_IN' WHERE id=$1 AND status IN ('PENDING','CONFIRMED')",[id]);else if(command==="COLLECT_CASH")await tx.query("UPDATE court_bookings SET payment_status='PAID_CASH' WHERE id=$1",[id]);else if(command==="COMPLETE"){if(booking.payment_status!=="PAID_CASH")throw new Error("Record cash collection before completion.");await tx.query("UPDATE court_bookings SET status='COMPLETED' WHERE id=$1 AND status='CHECKED_IN'",[id]);}else await tx.query("UPDATE court_bookings SET status=$1 WHERE id=$2",[command==="CONFIRM"?"CONFIRMED":"CANCELLED",id]);await tx.query("INSERT INTO audit_logs(id,actor_id,action,entity,entity_id) VALUES($1,$2,$3,'court_booking',$4)",[randomUUID(),access.userId,`ACADEMY_${command}`,id]);});}catch(e){error=errorText(e);}
+  revalidatePath("/academy/bookings");redirect(error?`/academy/bookings?error=${encodeURIComponent(error)}`:`/academy/bookings?notice=${encodeURIComponent(command.replaceAll("_"," "))}%20saved`);
+}
+
+export async function academyOfferAction(form:FormData){
+  const access=await requireAcademyAccess();let error="";
+  try{const input=z.object({title:z.string().trim().min(4).max(100),description:z.string().trim().min(10).max(1000),points:z.coerce.number().int().min(0).max(100000)}).parse({title:form.get("title"),description:form.get("description"),points:form.get("points")});const academy=await one<{name:string}>("SELECT name FROM academies WHERE id=$1",[access.academyId]);await query("INSERT INTO offers(id,academy_id,title,partner,category,description,points_cost,expires_at) VALUES($1,$2,$3,$4,'Academy',$5,$6,now()+interval '180 days')",[randomUUID(),access.academyId,input.title,academy?.name||"Academy",input.description,input.points]);}catch(e){error=errorText(e);}
+  revalidatePath("/academy/offers");revalidatePath("/rewards");redirect(error?`/academy/offers?error=${encodeURIComponent(error)}`:"/academy/offers?notice=Offer%20published");
+}
+
+export async function academyProfileAction(form:FormData){
+  const access=await requireAcademyAccess();let error="";
+  try{const input=z.object({name:z.string().trim().min(3).max(100),description:z.string().trim().min(20).max(2000),phone:z.string().trim().max(30),email:z.email()}).parse({name:form.get("name"),description:form.get("description"),phone:form.get("phone")||"",email:form.get("email")});await query("UPDATE academies SET name=$1,description=$2,phone=$3,email=$4 WHERE id=$5",[input.name,input.description,input.phone,input.email,access.academyId]);}catch(e){error=errorText(e);}
+  revalidatePath("/academy");redirect(error?`/academy/profile?error=${encodeURIComponent(error)}`:"/academy/profile?notice=Academy%20profile%20updated");
 }

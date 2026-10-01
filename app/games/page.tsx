@@ -16,7 +16,7 @@ export default async function GamesPage({searchParams}:{searchParams:Promise<Fil
  const areas=[...new Set(venues.map(v=>v.area))].sort();
  const url=(extra:Record<string,string>)=>`/games?${new URLSearchParams({...Object.fromEntries(Object.entries(f).filter(([,v])=>!!v)) as Record<string,string>,...extra})}`;
  return <main className="page"><div className="container">
-  <div className="page-head"><span className="eyebrow muted">Play in Amman</span><h1>Games</h1><p>Find upcoming games near you.</p></div>
+  <div className="listing-head"><div className="page-head"><span className="eyebrow muted">Play in Amman</span><h1>Open matches</h1><p>Find upcoming games near you.</p></div><Link className="btn btn-primary" href="/matches/create">Create a match</Link></div>
   <form className="filter-bar" action="/games">
    <div style={{position:"relative",flex:"1 1 260px",maxWidth:360}}><Search size={16} style={{position:"absolute",left:11,top:12,color:"#667085"}}/><input className="input" style={{paddingLeft:34,maxWidth:"none"}} name="q" defaultValue={f.q} placeholder="Search games, venues or sports..."/></div>
    <select name="sport" defaultValue={f.sport||"all"} aria-label="Sport"><option value="all">All Sports</option>{sports.map(s=><option key={s} value={s}>{sportLabels[s]}</option>)}</select>

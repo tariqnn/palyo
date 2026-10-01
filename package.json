@@ -9,7 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "db:seed": "node scripts/seed.mjs",
+    "db:seed": "node scripts/seed.mjs && node scripts/seed-parity.mjs",
     "db:enrich": "node scripts/enrich-demo.mjs",
     "db:migrate": "node scripts/migrate.mjs"
   },

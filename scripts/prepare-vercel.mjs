@@ -16,4 +16,5 @@ if (privatePreview || publicProduction) {
   if (adminPassword) process.env.PLAYUP_ADMIN_PASSWORD = adminPassword;
   await import("./migrate.mjs");
   await import("./seed.mjs");
+  await import("./seed-parity.mjs");
 }

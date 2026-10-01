@@ -1,7 +1,7 @@
 import "server-only";
 import { PGlite } from "@electric-sql/pglite";
 import { Pool, type PoolClient } from "pg";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
 type Queryable = { query: (sql: string, params?: unknown[]) => Promise<{ rows: Record<string, unknown>[] }> };
@@ -17,8 +17,10 @@ async function connect(): Promise<Queryable> {
     throw new Error("DATABASE_URL is required in production. Configure hosted PostgreSQL before deploying.");
   }
   const db = new PGlite(process.env.PLAYUP_DB_DIR || process.env.PLAYO_DB_DIR || ".playup-db");
-  const sql = await readFile(path.join(process.cwd(), "db/migrations/001_init.sql"), "utf8");
-  await db.exec(sql);
+  const migrationDir=path.join(process.cwd(), "db/migrations");
+  for(const file of (await readdir(migrationDir)).filter(file=>file.endsWith(".sql")).sort()) {
+    await db.exec(await readFile(path.join(migrationDir,file),"utf8"));
+  }
   return db as unknown as Queryable;
 }
 export async function database(): Promise<Queryable> {
