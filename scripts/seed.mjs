@@ -18,7 +18,13 @@ const q = (sql, values = []) => db.query(sql, values);
 await db.exec?.(await readFile("db/migrations/001_init.sql", "utf8"));
 if (process.env.DATABASE_URL) await q(await readFile("db/migrations/001_init.sql", "utf8"));
 const existing = await q("SELECT id FROM users LIMIT 1");
-if (existing.rows.length) { console.log("Seed data already exists."); await db.end?.(); await db.close?.(); process.exit(0); }
+if (existing.rows.length) {
+  if (publicSeed) { await q("UPDATE users SET password_hash=$1 WHERE email='admin@playup.local'", [hashSync(adminPassword, 12)]); console.log("Admin password synced from environment."); }
+  console.log("Seed data already exists.");
+  await db.end?.(); await db.close?.();
+  if (publicSeed) await import("./seed-parity.mjs");
+  process.exit(0);
+}
 
 const sports = ["football", "basketball", "dodgeball", "tennis"];
 const image = {
