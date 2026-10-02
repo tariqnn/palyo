@@ -15,6 +15,9 @@ const q=(text,params=[])=>db.query(text,params);
 const games=(await q("SELECT id,sport,organizer_id,recording_enabled FROM games WHERE status='COMPLETED' ORDER BY starts_at ASC")).rows;
 let completed=0;
 for(const game of games){
+ // Repair older/demo databases even when the result was already generated.
+ // Reviews and progression both require the participant booking to be final.
+ await q("UPDATE bookings SET status='COMPLETED' WHERE game_id=$1 AND status='CONFIRMED'",[game.id]);
  const exists=(await q("SELECT game_id FROM results WHERE game_id=$1",[game.id])).rows[0];if(exists)continue;
  const players=(await q("SELECT user_id FROM bookings WHERE game_id=$1 ORDER BY created_at,user_id",[game.id])).rows;
  const teams={BLACK:[],WHITE:[]};

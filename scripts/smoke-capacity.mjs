@@ -33,7 +33,7 @@ try{
  const winner=texts[0].includes("Booking reference")?scorekeeper:admin;
  const loser=winner===scorekeeper?admin:scorekeeper;
  await winner.page.goto("/bookings");
- await winner.page.locator(".card").filter({has:winner.page.locator(`a[href="/games/${gameId}"]`)}).getByRole("button",{name:"Cancel"}).click();
+ await winner.page.locator(".booking-row").filter({has:winner.page.locator(`a[href="/games/${gameId}"]`)}).getByRole("button",{name:"Cancel"}).click();
  await winner.page.waitForURL("**/bookings?notice=**",{timeout:15000});
  await loser.page.goto(`/games/${gameId}`);
  if(!((await loser.page.locator("body").innerText()).includes("A spot opened up!")))throw new Error("Waitlist offer was not shown");

@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local runtime data and provider metadata are not source files. Without
+    // these ignores, a root-level `eslint` walk can stall inside PGlite.
+    ".playup-*/**",
+    ".playo-*/**",
+    ".vercel/**",
   ]),
 ]);
 

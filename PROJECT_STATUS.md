@@ -10,13 +10,17 @@
 - Stream and recording data model, mock stream lifecycle, server-side visibility checks, archive and My Videos pages, recording moments, organizer management, and admin analytics.
 - Browser smoke coverage for auth and booking, a concurrent last-spot booking race, organizer scoring and clock control, finalization, role and stream permissions, and completed-game reviews. Unit checks cover scoring, team balancing, and progression.
 
-## Remaining before public launch
+## Launch model
 
-- Integrate a Jordan-supported payment processor and its signed webhooks, asynchronous settlement, and real refunds. The mock adapter is restricted to development and explicitly enabled private Vercel Preview demos.
-- Integrate a video provider for ingest, playback, recording processing, signed playback URLs, and provider webhooks. The mock stream records metadata only; no video is available without an adapter.
-- Configure a real SMTP service for password reset email and production monitoring/operations. Development shows the reset link locally.
-- Expand tournaments and seasons beyond the present entry, fixture, and standings foundation if league operations are required.
-- Run deployment, accessibility, load, and security checks against the target production environment and provider credentials.
+- The first public release is a cash-at-venue web pilot. Online payment processing and refunds are post-launch work, not launch dependencies.
+- The website uses PostgreSQL/Neon while the Flutter app currently uses Firebase Auth and Firestore. They provide matching core workflows but do not yet share accounts or live user data; cross-platform identity and data synchronization is the first post-launch integration.
+- Live video remains provider-dependent. The current stream and recording pages safely expose metadata and availability states without pretending mock video exists.
+
+## Remaining operational work
+
+- Configure Resend or SMTP so production password-reset emails can be delivered. Until then, users can sign up and sign in, but self-service password recovery is unavailable.
+- Add production monitoring and complete accessibility, load, and security checks against the live deployment.
+- Expand tournaments and seasons beyond the present entry, fixture, and standings foundation if full league operations are required.
 
 ## Local database note
 

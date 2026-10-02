@@ -10,7 +10,7 @@ try{
   await page.getByRole("button",{name:"Log In"}).click();
   await page.waitForURL("**/games");
   await page.goto("/bookings?tab=past");
-  const completed=page.locator(".card").filter({hasText:"COMPLETED"}).first();
+  const completed=page.locator(".booking-row").filter({hasText:"COMPLETED"}).first();
   if(!await completed.count())throw new Error("Seed has no completed booking for demo player");
   await completed.getByRole("link",{name:"View"}).click();
   await page.getByRole("link",{name:"Reviews"}).click();

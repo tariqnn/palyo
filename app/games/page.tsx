@@ -28,7 +28,7 @@ export default async function GamesPage({searchParams}:{searchParams:Promise<Fil
    <button className="btn btn-dark" type="submit">Search</button>
   </form>
   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:15}}><p className="muted" style={{fontSize:12,margin:0}}>{total} games found</p><div style={{display:"flex",gap:8}}><Link className={f.view!=="list"?"inline-link":"muted"} href={url({view:"grid"})} aria-label="Grid view"><LayoutGrid size={18}/></Link><Link className={f.view==="list"?"inline-link":"muted"} href={url({view:"list"})} aria-label="List view"><List size={18}/></Link></div></div>
-  {rows.length?<div className={`game-grid ${f.view==="list"?"game-list":""}`}>{rows.map(g=><GameCard game={g} key={g.id}/>)}</div>:<div className="empty"><h3>No games match your filters</h3><p>Try another date, sport or venue.</p><Link href="/games" className="btn btn-primary">Clear filters</Link></div>}
+  {rows.length?<div className={`game-grid ${f.view==="list"?"game-list":""}`}>{rows.map((g,index)=><GameCard game={g} eager={index===0} key={g.id}/>)}</div>:<div className="empty"><h3>No games match your filters</h3><p>Try another date, sport or venue.</p><Link href="/games" className="btn btn-primary">Clear filters</Link></div>}
   {pages>1&&<nav className="pagination" aria-label="Pages">{Array.from({length:pages},(_,i)=><Link className={page===i+1?"active":""} href={url({page:String(i+1)})} key={i}>{i+1}</Link>)}</nav>}
  </div></main>;
 }
