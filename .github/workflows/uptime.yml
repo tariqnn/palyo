@@ -1,0 +1,25 @@
+name: Production uptime
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-uptime
+  cancel-in-progress: true
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check website and database health
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$(curl --fail --silent --show-error --retry 3 --retry-all-errors --max-time 20 https://palyo.vercel.app/api/health)"
+          node -e 'const value=JSON.parse(process.argv[1]); if(value.status!=="ok"||value.database!=="ok") { console.error(value); process.exit(1) } console.log("PlayUp production health is OK at", value.checkedAt)' "$response"

@@ -1,5 +1,15 @@
-export default function Privacy(){return <main className="page"><div className="container" style={{maxWidth:800}}><div className="page-head"><h1>Privacy</h1><p>How PlayUp handles your data</p></div>
-<p>PlayUp stores your account details, sport preferences, bookings, scores, and community posts to provide the service. We do not collect or store card or bank details because payment is cash at the venue.</p>
-<p>Passwords are hashed, and session tokens are stored as hashes and sent in HTTP-only cookies. We do not sell your personal data.</p>
-<p>When a game may be recorded, its booking page requires your acknowledgement before joining, and recording visibility is enforced on the server.</p>
-<p>You can update your details or ask us to delete your account through Settings or the Contact page.</p></div></main>}
+import Link from "next/link";
+import { brand } from "@/lib/brand";
+
+export default function Privacy(){return <main className="page"><article className="container legal-page"><div className="page-head"><h1>Privacy policy</h1><p>How PlayUp handles your information</p></div>
+<p className="legal-updated">Last updated: 3 October 2026</p>
+<h2>Who operates PlayUp</h2><p>PlayUp is operated by {brand.operatorName}.{brand.operatorAddress&&<> The operator address is {brand.operatorAddress}.</>} Questions and privacy requests can be submitted through the <Link className="inline-link" href="/contact">Contact page</Link>{brand.supportEmail&&<> or emailed to <a className="inline-link" href={`mailto:${brand.supportEmail}`}>{brand.supportEmail}</a></>}.</p>
+<h2>Information we collect</h2><p>We collect account details, contact information, sport preferences, profile content, bookings, match participation, scores, ratings, community posts, support messages, device and service logs, and recording consent where relevant. PlayUp does not collect or store card or bank details while payment remains cash at the venue.</p>
+<h2>How we use information</h2><p>We use this information to create and secure accounts, provide bookings and match features, operate leaderboards and rewards, prevent abuse, respond to support requests, improve reliability, and meet applicable legal obligations.</p>
+<h2>Sharing and service providers</h2><p>Information is shared only when needed with participating venues or organizers, infrastructure and email providers, professional advisers, or authorities where legally required. Service providers process information on PlayUp&apos;s behalf and are limited to the services they provide.</p>
+<h2>Security and retention</h2><p>Passwords are hashed. Session tokens are stored as hashes and sent using secure HTTP-only cookies. Access to management tools is role restricted. Information is kept only as long as needed for the service, safety, dispute handling, and applicable legal obligations, after which it is deleted or anonymized where practical.</p>
+<h2>Recordings</h2><p>When a game may be recorded, the booking flow requires acknowledgement before joining. Recording visibility is enforced on the server. Organizers and venues remain responsible for obtaining any additional consent required at the location.</p>
+<h2>Your choices and requests</h2><p>You can update your profile and privacy preferences from Settings. You may request a copy of your information or request account deletion from <Link className="inline-link" href="/settings/account">Account and data</Link>. We may need to verify your identity and retain limited records where legally required.</p>
+<h2>Children</h2><p>PlayUp is not intended for children under {brand.minimumAge} without involvement and consent from a parent or legal guardian. Do not create an account if you cannot legally agree to these terms.</p>
+<h2>Changes</h2><p>Material changes will be posted on this page with an updated date. Continued use after a change means the updated policy applies from its effective date.</p>
+</article></main>}

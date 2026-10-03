@@ -1,5 +1,9 @@
 # PlayUp
 
+PlayUp includes persistent English and Arabic website modes. Arabic mode applies right-to-left layout, Arabic typography, translated navigation, forms, statuses, validation feedback, and administration UI. Use the language control in the site header or authentication pages.
+
+See [`LAUNCH_CHECKLIST.md`](LAUNCH_CHECKLIST.md) for the remaining operational, business, legal, and pilot-launch tasks.
+
 For Vercel Preview and public demo deployments, follow [the Vercel guide](docs/VERCEL.md).
 
 PlayUp is a responsive web platform for recreational football, basketball, dodgeball, and tennis in Amman. The visual system follows the supplied design reference: a dark photographic home page, compact white internal pages, and a restrained green accent.

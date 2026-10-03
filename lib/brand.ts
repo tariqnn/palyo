@@ -4,6 +4,9 @@ export const brand = {
   url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   color: "#22e879",
   supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL,
+  operatorName: process.env.NEXT_PUBLIC_OPERATOR_NAME || "PlayUp",
+  operatorAddress: process.env.NEXT_PUBLIC_OPERATOR_ADDRESS,
+  minimumAge: Number(process.env.NEXT_PUBLIC_MINIMUM_AGE || 16),
   social: { instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL, x: process.env.NEXT_PUBLIC_X_URL },
 } as const;
 

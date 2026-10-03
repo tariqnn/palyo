@@ -135,6 +135,19 @@ export async function supportTicketAction(form:FormData){
   redirect(error?`/support?error=${encodeURIComponent(error)}`:"/support?notice=Support%20ticket%20submitted");
 }
 
+export async function accountRequestAction(form:FormData){
+  const user=await currentUser();if(!user)redirect("/login");let error="";
+  try{
+    const input=z.object({request:z.enum(["DATA_EXPORT","ACCOUNT_DELETION"]),confirmation:z.string().max(30).optional(),details:z.string().trim().max(1000).optional()}).parse({request:form.get("request"),confirmation:form.get("confirmation")||"",details:form.get("details")||""});
+    if(input.request==="ACCOUNT_DELETION"&&input.confirmation!=="DELETE")throw new Error("Type DELETE to confirm the account deletion request.");
+    const recent=await one<{n:string}>("SELECT count(*)::text AS n FROM support_tickets WHERE user_id=$1 AND category=$2 AND created_at>now()-interval '24 hours'",[user.id,input.request]);
+    if(Number(recent?.n||0)>0)throw new Error("You already submitted this request in the last 24 hours.");
+    const body=input.details||`${input.request==="DATA_EXPORT"?"Data export":"Account deletion"} requested by ${user.email}. Identity verification is required before processing.`;
+    await query("INSERT INTO support_tickets(id,user_id,category,body) VALUES($1,$2,$3,$4)",[randomUUID(),user.id,input.request,body]);
+  }catch(e){error=errorText(e);}
+  redirect(error?`/settings/account?error=${encodeURIComponent(error)}`:"/settings/account?notice=Request%20submitted");
+}
+
 export async function academyBookingAction(form:FormData){
   const access=await requireAcademyAccess();const id=String(form.get("bookingId")||""),command=z.enum(["CONFIRM","CHECK_IN","COMPLETE","CANCEL","COLLECT_CASH"]).parse(form.get("command"));let error="";
   try{await transaction(async tx=>{const booking=(await tx.query("SELECT b.*,v.academy_id FROM court_bookings b JOIN venues v ON v.id=b.venue_id WHERE b.id=$1 FOR UPDATE",[id])).rows[0];if(!booking||booking.academy_id!==access.academyId)throw new Error("Booking not found for your academy.");if(command==="CHECK_IN")await tx.query("UPDATE court_bookings SET checked_in_at=now(),status='CHECKED_IN' WHERE id=$1 AND status IN ('PENDING','CONFIRMED')",[id]);else if(command==="COLLECT_CASH")await tx.query("UPDATE court_bookings SET payment_status='PAID_CASH' WHERE id=$1",[id]);else if(command==="COMPLETE"){if(booking.payment_status!=="PAID_CASH")throw new Error("Record cash collection before completion.");await tx.query("UPDATE court_bookings SET status='COMPLETED' WHERE id=$1 AND status='CHECKED_IN'",[id]);}else await tx.query("UPDATE court_bookings SET status=$1 WHERE id=$2",[command==="CONFIRM"?"CONFIRMED":"CANCELLED",id]);await tx.query("INSERT INTO audit_logs(id,actor_id,action,entity,entity_id) VALUES($1,$2,$3,'court_booking',$4)",[randomUUID(),access.userId,`ACADEMY_${command}`,id]);});}catch(e){error=errorText(e);}
