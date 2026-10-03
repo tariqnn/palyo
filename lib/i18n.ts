@@ -255,6 +255,8 @@ export const arabicText: Record<string, string> = {
   "Conduct": "السلوك",
   "About PlayUp": "عن PlayUp",
   "More playing. Less organizing.": "لعب أكثر. تنظيم أقل.",
+  "PlayUp helps people find pickup football, basketball, dodgeball, and tennis games around Amman. Discover a game, reserve a spot, meet the players, and keep track of the result in one place.": "يساعد PlayUp الناس على العثور على مباريات كرة القدم وكرة السلة والدودج بول والتنس في عمّان. اكتشف مباراة واحجز مكانك وتعرّف إلى اللاعبين وتابع النتيجة في مكان واحد.",
+  "PlayUp is preparing a web-first pilot with verified local venues and organizers. Listings will appear only after their prices, schedules, and contact details are confirmed.": "يستعد PlayUp لإطلاق تجربة أولية عبر الويب مع ملاعب ومنظمين محليين موثّقين. لن تظهر الإعلانات إلا بعد تأكيد الأسعار والمواعيد وبيانات التواصل.",
   "Something went wrong": "حدث خطأ ما",
   "That didn't work": "لم تنجح العملية",
   "Try again": "حاول مرة أخرى",

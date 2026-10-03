@@ -10,6 +10,11 @@ try{
   (SELECT count(*) FROM venues)::int AS venues,
   (SELECT count(*) FROM venues WHERE demo=TRUE)::int AS demo_venues,
   (SELECT count(*) FROM games WHERE starts_at>now())::int AS future_games,
+  (SELECT count(*) FROM academies)::int AS academies,
+  (SELECT count(*) FROM activities)::int AS activities,
+  (SELECT count(*) FROM offers)::int AS offers,
+  (SELECT count(*) FROM tournaments)::int AS tournaments,
+  (SELECT count(*) FROM posts)::int AS community_posts,
   (SELECT count(*) FROM users WHERE email NOT LIKE '%@playup.local' AND email NOT LIKE '%@playo.local')::int AS real_accounts`);
  console.log(JSON.stringify({
   database:"ok",

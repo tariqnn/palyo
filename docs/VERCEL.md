@@ -2,13 +2,13 @@
 
 This guide uses a **Preview deployment**, a dedicated hosted PostgreSQL database, and Vercel Authentication. Do not publish the seeded demo accounts on an unprotected production domain. The demo uses simulated payments and stream metadata; it does not charge cards or play live video.
 
-## Public demo on the production domain
+## Production web pilot
 
 The public site at `https://palyo.vercel.app` uses the `main` branch and its own Neon database, connected only to the **Production** environment. Vercel Authentication continues to protect Preview deployments; visitors to the production domain do not need Vercel access.
 
-Set `PLAYUP_PUBLIC_DEMO=1`, `PAYMENT_PROVIDER=mock`, `STREAM_PROVIDER=mock`, and `NEXT_PUBLIC_SITE_URL=https://palyo.vercel.app` for Production. Store a unique password of at least 20 characters as the Production Secret `PLAYUP_ADMIN_PASSWORD`. The `main` build migrates and seeds this database. The public seed gives sample non-admin accounts random unknown passwords and sets only `admin@playup.local` to the secret admin password. Do not publish that password in GitHub or page content.
+Set `NEXT_PUBLIC_SITE_URL=https://palyo.vercel.app` for Production until a custom domain is connected. Do not set `PLAYUP_PUBLIC_DEMO`; production builds run migrations but never seed sample content. Add only verified venue, organizer, price, and schedule data through the administrator tools. Store the production administrator password as a Vercel Secret and never publish it in GitHub or page content.
 
-Public visitors can browse and create their own accounts. Bookings use simulated payments, and video streaming remains a demo placeholder. A real payments and streaming launch needs providers configured before the demo flags are removed.
+Public visitors can browse and create their own accounts. The pilot uses cash payment at the venue. Video streaming remains unavailable until a provider and storage policy are configured.
 
 ## Protected Preview setup
 

@@ -9,7 +9,8 @@
 - [x] English and Arabic language switcher available across the website.
 - [x] Arabic right-to-left layout and responsive navigation implemented.
 - [ ] Configure Resend or SMTP and test password-reset delivery to a real inbox.
-- [ ] Replace fictional demo venues, players, games, prices, and schedules with real launch data.
+- [x] Remove fictional demo venues, academies, activities, offers, games, prices, and schedules from production.
+- [ ] Add verified real venues, organizers, prices, and match schedules before inviting users.
 - [ ] Assign a person to monitor support messages, reports, bookings, and cancellations every day.
 - [ ] Confirm database backup and recovery settings in Neon and perform one recovery drill.
 - [x] Add baseline production observability, speed monitoring, database health checks, and scheduled uptime alerts.
