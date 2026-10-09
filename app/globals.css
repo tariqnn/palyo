@@ -88,3 +88,116 @@ html[dir="rtl"] .hero h1,html[dir="rtl"] .page-head h1,html[dir="rtl"] .section-
 .legal-page{max-width:820px}.legal-page .page-head{margin-bottom:8px}.legal-page h2{font-size:21px;margin:30px 0 8px}.legal-page p{line-height:1.75}.legal-updated{color:var(--muted);font-size:12px;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:24px}
 .btn-danger{background:#a92727;color:#fff;border-color:#a92727}.btn-danger:hover{background:#861f1f;border-color:#861f1f}.account-danger{margin-top:18px;border-color:#efcaca;background:#fffafa}.account-danger h2{color:#8e2020}
 @media(max-width:760px){.language-switcher span{display:none}.language-switcher{width:44px;padding:0}.auth-topbar .language-switcher{width:auto;padding:8px 12px}.auth-topbar .language-switcher span{display:inline}.auth-topbar{inset-inline:7%}}
+
+
+/* Interactive Animated Sport Court */
+.court-container{background:#0a1710;border:1px solid #1c3826;border-radius:12px;padding:22px;color:#fff;margin:24px 0;box-shadow:0 8px 32px #00000040}
+.court-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1px solid #1c3826}
+.court-title-group{display:flex;flex-direction:column;gap:3px}
+.court-sport-badge{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:850;letter-spacing:-.02em}
+.court-sport-icon{font-size:18px}
+.court-venue-sub{font-size:12px;color:#8ba594}
+.court-capacity-status{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.court-status-pill{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;background:#142c1e;border:1px solid #245136;border-radius:999px;font-size:12px;font-weight:800}
+.court-status-pill .status-open{color:#22e879}
+.court-status-pill .status-full{color:#f59e0b}
+.status-full-icon{color:#f59e0b}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#22e879;display:inline-block}
+.live-dot.pulse{box-shadow:0 0 0 0 rgba(34,232,121,.7);animation:courtPulse 1.8s infinite}
+@keyframes courtPulse{0%{box-shadow:0 0 0 0 rgba(34,232,121,.7)}70%{box-shadow:0 0 0 8px rgba(34,232,121,0)}100%{box-shadow:0 0 0 0 rgba(34,232,121,0)}}
+.court-progress-bar{width:160px;height:6px;background:#183624;border-radius:999px;overflow:hidden}
+.court-progress-fill{height:100%;background:linear-gradient(90deg,#0bb85a,#22e879);border-radius:inherit;transition:width .4s ease-out}
+.court-sim-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:14px 0 16px;font-size:11px}
+.court-sim-legend{display:flex;align-items:center;gap:16px}
+.legend-item{display:inline-flex;align-items:center;gap:6px;color:#a4baab}
+.legend-color{width:10px;height:10px;border-radius:50%;display:inline-block}
+.legend-color.team-black{background:#111;border:1.5px solid #fff}
+.legend-color.team-white{background:#fff;border:1.5px solid #111}
+.legend-color.spot-open{border:1.5px dashed #22e879;background:rgba(34,232,121,.2)}
+.court-sim-actions{display:flex;align-items:center;gap:8px}
+.court-sim-btn,.court-reset-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:750;transition:all .15s}
+.court-sim-btn{background:#173d27;color:#22e879;border:1px solid #24633e}
+.court-sim-btn:hover{background:#205234;transform:translateY(-1px);color:#fff}
+.court-reset-btn{background:#1f2823;color:#94a69b;border:1px solid #2e3a33}
+.court-reset-btn:hover{background:#2a362f;color:#fff}
+.court-field{position:relative;width:100%;aspect-ratio:16/10;min-height:380px;max-height:520px;border-radius:10px;overflow:hidden;box-shadow:inset 0 0 50px rgba(0,0,0,.6),0 4px 20px rgba(0,0,0,.3)}
+.court-field-football{background:radial-gradient(ellipse at center,#196b34 0%,#0f4922 100%);background-image:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0px,rgba(255,255,255,.035) 32px,transparent 32px,transparent 64px),radial-gradient(ellipse at center,#1b7539 0%,#0e421e 100%)}
+.markings-football{position:absolute;inset:4%;border:2px solid rgba(255,255,255,.65);border-radius:4px}
+.fb-halfway-line{position:absolute;left:0;right:0;top:50%;height:2px;background:rgba(255,255,255,.65);transform:translateY(-50%)}
+.fb-center-circle{position:absolute;left:50%;top:50%;width:80px;height:80px;border:2px solid rgba(255,255,255,.65);border-radius:50%;transform:translate(-50%,-50%);display:grid;place-items:center}
+.fb-center-dot{width:6px;height:6px;border-radius:50%;background:#fff}
+.fb-box{position:absolute;left:50%;width:50%;height:22%;border:2px solid rgba(255,255,255,.65);transform:translateX(-50%)}
+.fb-box-top{top:0;border-top:0}
+.fb-box-bottom{bottom:0;border-bottom:0}
+.fb-goal-area{position:absolute;left:50%;width:50%;height:45%;border:2px solid rgba(255,255,255,.55);transform:translateX(-50%)}
+.fb-box-top .fb-goal-area{top:0;border-top:0}
+.fb-box-bottom .fb-goal-area{bottom:0;border-bottom:0}
+.fb-penalty-spot{position:absolute;left:50%;width:5px;height:5px;background:#fff;border-radius:50%;transform:translateX(-50%)}
+.fb-box-top .fb-penalty-spot{bottom:15%}
+.fb-box-bottom .fb-penalty-spot{top:15%}
+.fb-corner{position:absolute;width:14px;height:14px;border:2px solid rgba(255,255,255,.65);border-radius:50%}
+.fb-corner-tl{left:-8px;top:-8px}.fb-corner-tr{right:-8px;top:-8px}.fb-corner-bl{left:-8px;bottom:-8px}.fb-corner-br{right:-8px;bottom:-8px}
+.court-field-basketball{background:linear-gradient(135deg,#bd7838 0%,#98561d 50%,#753c0d 100%);box-shadow:inset 0 0 60px rgba(0,0,0,.6)}
+.markings-basketball{position:absolute;inset:4%;border:2px solid rgba(255,255,255,.8);border-radius:4px}
+.bb-halfway-line{position:absolute;left:0;right:0;top:50%;height:2px;background:rgba(255,255,255,.8);transform:translateY(-50%)}
+.bb-center-circle{position:absolute;left:50%;top:50%;width:74px;height:74px;border:2px solid rgba(255,255,255,.8);border-radius:50%;transform:translate(-50%,-50%)}
+.bb-key{position:absolute;left:50%;width:34%;height:26%;border:2px solid rgba(255,255,255,.8);transform:translateX(-50%);background:rgba(189,120,56,.35)}
+.bb-key-top{top:0;border-top:0}
+.bb-key-bottom{bottom:0;border-bottom:0}
+.bb-hoop{position:absolute;left:50%;width:18px;height:18px;border:2px solid #ea580c;border-radius:50%;transform:translateX(-50%)}
+.bb-key-top .bb-hoop{top:6px}
+.bb-key-bottom .bb-hoop{bottom:6px}
+.bb-arc-3pt{position:absolute;left:50%;width:78%;height:40%;border:2px solid rgba(255,255,255,.75);border-radius:50%;transform:translateX(-50%)}
+.bb-arc-top{top:-12%}
+.bb-arc-bottom{bottom:-12%}
+.court-field-tennis{background:#1e3a8a;border:14px solid #166534}
+.markings-tennis{position:absolute;inset:4%;border:2px solid rgba(255,255,255,.85)}
+.tn-net{position:absolute;left:-4%;right:-4%;top:50%;height:4px;background:#fff;transform:translateY(-50%);box-shadow:0 3px 8px rgba(0,0,0,.5);z-index:5}
+.tn-net::after{content:"";position:absolute;left:0;right:0;top:-2px;height:2px;background:#e2e8f0}
+.tn-service-box-line{position:absolute;left:0;right:0;height:2px;background:rgba(255,255,255,.75)}
+.tn-sline-top{top:28%}.tn-sline-bottom{bottom:28%}
+.tn-center-service-line{position:absolute;left:50%;width:2px;background:rgba(255,255,255,.75);transform:translateX(-50%)}
+.tn-service-top{top:28%;bottom:50%}.tn-service-bottom{top:50%;bottom:28%}
+.tn-singles-line{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.65)}
+.tn-sline-left{left:14%}.tn-sline-right{right:14%}
+.court-field-dodgeball{background:radial-gradient(circle at center,#5c1616 0%,#2d0c0c 100%)}
+.markings-dodgeball{position:absolute;inset:4%;border:2px solid rgba(255,255,255,.8)}
+.db-center-line{position:absolute;left:0;right:0;top:50%;height:3px;background:#e11d48;transform:translateY(-50%)}
+.db-attack-line{position:absolute;left:0;right:0;height:2px;background:rgba(255,255,255,.5)}
+.db-attack-top{top:36%}.db-attack-bottom{bottom:36%}
+.db-ball-staging{position:absolute;left:10%;right:10%;top:50%;display:flex;justify-content:space-around;transform:translateY(-50%);z-index:4}
+.db-ball{width:11px;height:11px;border-radius:50%;background:#fbbf24;box-shadow:0 0 6px #f59e0b}
+.court-spot{position:absolute;transform:translate(-50%,-50%);z-index:10;animation:spotPop .45s cubic-bezier(.175,.885,.32,1.275) both}
+@keyframes spotPop{0%{transform:translate(-50%,-50%) scale(0);opacity:0}80%{transform:translate(-50%,-50%) scale(1.1)}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
+.player-token-wrapper{position:relative;display:flex;flex-direction:column;align-items:center;cursor:pointer}
+.player-token{position:relative;width:40px;height:40px;border-radius:50%;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.6);transition:transform .2s,box-shadow .2s;background:#0f2015}
+.player-token.team-black{border:2.5px solid #111;box-shadow:0 0 0 2px #fff,0 4px 12px rgba(0,0,0,.6)}
+.player-token.team-white{border:2.5px solid #fff;box-shadow:0 0 0 2px #111,0 4px 12px rgba(0,0,0,.6)}
+.player-token:hover{transform:scale(1.15) translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.7)}
+.player-token-img{width:100%;height:100%;object-fit:cover}
+.player-token-initial{width:100%;height:100%;display:grid;place-items:center;font-weight:900;font-size:16px;color:#fff;background:linear-gradient(135deg,#0bb85a,#22e879)}
+.player-new-badge{position:absolute;right:-2px;top:-2px;width:18px;height:18px;border-radius:50%;background:#eab308;color:#000;display:grid;place-items:center;box-shadow:0 0 8px #fde047;animation:spinBadge 1.2s ease-out}
+@keyframes spinBadge{0%{transform:rotate(0deg) scale(0)}100%{transform:rotate(360deg) scale(1)}}
+.player-token-tag{margin-top:4px;display:flex;flex-direction:column;align-items:center;gap:1px;background:rgba(0,0,0,.78);backdrop-filter:blur(4px);padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.2);box-shadow:0 2px 6px rgba(0,0,0,.5);white-space:nowrap}
+.player-name-label{font-size:10px;font-weight:800;color:#fff}
+.player-role-label{font-size:8px;font-weight:700;color:#22e879;letter-spacing:.04em}
+.player-tooltip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);background:#07110d;border:1px solid #22e879;border-radius:6px;padding:6px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;white-space:nowrap;opacity:0;pointer-events:none;transition:all .2s;z-index:30;box-shadow:0 6px 18px rgba(0,0,0,.7)}
+.player-tooltip strong{color:#fff;font-size:12px}
+.player-tooltip small{color:#94a69b}
+.tooltip-joined{color:#22e879;font-weight:800;font-size:10px}
+.player-token-wrapper:hover .player-tooltip{opacity:1;transform:translateX(-50%) translateY(0)}
+.open-spot-wrapper{display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform .2s}
+.open-spot-wrapper:hover{transform:scale(1.15) translateY(-3px)}
+.open-spot-circle{position:relative;width:38px;height:38px;border-radius:50%;border:2px dashed rgba(255,255,255,.8);background:rgba(255,255,255,.12);backdrop-filter:blur(2px);display:grid;place-items:center;transition:all .2s}
+.open-spot-wrapper:hover .open-spot-circle{border-color:#22e879;background:rgba(34,232,121,.25)}
+.open-spot-plus{color:#fff;transition:transform .2s,color .2s}
+.open-spot-wrapper:hover .open-spot-plus{color:#22e879;transform:rotate(90deg)}
+.open-spot-pulse-ring{position:absolute;inset:-4px;border-radius:50%;border:2px solid #22e879;opacity:0;animation:spotPulseGlow 2.2s infinite ease-out}
+@keyframes spotPulseGlow{0%{transform:scale(.9);opacity:.8}50%{transform:scale(1.25);opacity:0}100%{transform:scale(.9);opacity:0}}
+.open-spot-tag{margin-top:4px;display:flex;flex-direction:column;align-items:center;gap:1px;background:rgba(0,0,0,.7);padding:2px 7px;border-radius:999px;border:1px dashed rgba(255,255,255,.3);white-space:nowrap}
+.open-spot-tag span{font-size:9px;font-weight:800;color:#22e879}
+.open-spot-tag small{font-size:8px;color:#cbd5e1}
+.just-added .player-token{animation:justAddedPulse 1.6s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes justAddedPulse{0%{transform:scale(0);box-shadow:0 0 0 0 #22e879}50%{transform:scale(1.35);box-shadow:0 0 35px 12px #22e879}100%{transform:scale(1);box-shadow:0 4px 12px rgba(0,0,0,.6)}}
+.court-footer{margin-top:14px;padding-top:12px;border-top:1px solid #1c3826;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#94a69b}
+@media(max-width:640px){.court-field{min-height:330px}.player-token,.open-spot-circle{width:32px;height:32px}.player-name-label{font-size:9px}.player-role-label{font-size:7px}.court-progress-bar{width:110px}}

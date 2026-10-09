@@ -12,7 +12,7 @@ const tokenHash = (token:string) => createHash("sha256").update(token).digest("h
 export const signupSchema = z.object({
   name:z.string().trim().min(2).max(80), username:z.string().trim().toLowerCase().regex(/^[a-z0-9_]{3,24}$/),
   email:z.email().toLowerCase(), phone:z.string().max(30).optional(),
-  password:z.string().min(10).max(100), confirm:z.string(), terms:z.literal("on")
+  password:z.string().min(6).max(100), confirm:z.string(), terms:z.literal("on")
 }).refine(v=>v.password===v.confirm,{message:"Passwords do not match",path:["confirm"]});
 
 export async function currentUser():Promise<User|null> {
@@ -70,7 +70,7 @@ export async function requestPasswordReset(email:string){
   return process.env.NODE_ENV==="production"?null:url;
 }
 export async function resetPassword(token:string,password:string){
-  if(password.length<10||password.length>100)throw new Error("Use a password of at least 10 characters.");
+  if(password.length<6||password.length>100)throw new Error("Use a password of at least 6 characters.");
   await transaction(async tx=>{
     const row=(await tx.query("SELECT user_id FROM password_resets WHERE token_hash=$1 AND expires_at>now() FOR UPDATE",[tokenHash(token)])).rows[0];
     if(!row)throw new Error("This reset link is invalid or expired.");
