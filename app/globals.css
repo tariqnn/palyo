@@ -293,3 +293,5 @@ html[dir="rtl"] .hero h1,html[dir="rtl"] .page-head h1,html[dir="rtl"] .section-
 @media(prefers-reduced-motion:reduce){.owner-content-card{transition:none}.owner-content-card:hover{transform:none}}
 
 .map-frame{display:block;width:100%;height:100%;border:0}.map-count{position:absolute;z-index:2;top:14px;left:14px;padding:8px 11px;border-radius:7px;background:#fff;color:#102218;font-size:12px;font-weight:750;box-shadow:0 2px 12px #0002}.map-empty{height:100%;display:grid;align-content:center;justify-items:center;gap:8px;padding:24px;text-align:center;color:#435249}.map-empty span{font-size:13px;color:#65736a}html[dir=rtl] .map-count{left:auto;right:14px}
+
+.venue-photo-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:linear-gradient(145deg,#eaf4ef,#d8e8df);color:#567262;font-size:12px;font-weight:700}

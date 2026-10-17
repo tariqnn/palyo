@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { VenuePhoto } from "@/components/venue-photo";
 import Link from "next/link";
 import { ArrowRight, CalendarCheck, UsersRound, Trophy, ArrowUpRight, MapPin, Star, GraduationCap, Compass } from "lucide-react";
 import { GameCard } from "@/components/game-card";
@@ -167,7 +168,7 @@ export default async function Home() {
               {venues.slice(0, 4).map((v) => (
                 <Link className="card venue-home-card" href={`/venues/${v.id}`} key={v.id}>
                   <div className="venue-image">
-                    <Image src={v.image_url} alt={v.name} fill sizes="25vw" />
+                    <VenuePhoto src={v.image_url} alt={v.name} sizes="25vw" />
                   </div>
                   <div className="venue-body">
                     <h3>{v.name}</h3>
