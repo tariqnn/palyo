@@ -14,7 +14,7 @@ export default async function Activities({ searchParams }: { searchParams: Promi
   const types = [...new Set(all.map(a => a.category))];
   const rows = f.type ? all.filter(a => a.category === f.type) : all;
   return <main className="page"><div className="container">
-    <div className="page-head"><span className="eyebrow muted">Beyond the court</span><h1>Outdoor sport adventures</h1><p>Scuba diving, parasailing, canyoning, hiking and more. Clear pricing in JD, paid in cash on the day.</p></div>
+    <div className="page-head"><span className="eyebrow muted">Beyond the court</span><h1>Outdoor sport adventures</h1><p>Browse activities with confirmed local operators and current details.</p></div>
     {f.notice && <div className="alert">{f.notice}</div>}{f.error && <div className="alert alert-error">{f.error}</div>}
     {types.length > 1 && <div className="pill-row" style={{ marginBottom: 18, flexWrap: "wrap" }}><a className={`pill ${!f.type ? "active" : ""}`} href="/activities">All</a>{types.map(t => <a className={`pill ${f.type === t ? "active" : ""}`} href={`/activities?type=${encodeURIComponent(t)}`} key={t}>{t}</a>)}</div>}
     {rows.length ? <div className="grid-3">{rows.map(a => <article className="card activity-card" key={a.id}>
@@ -30,6 +30,6 @@ export default async function Activities({ searchParams }: { searchParams: Promi
         <form action={bookActivityAction} className="compact-form"><input type="hidden" name="activityId" value={a.id}/><label>Date<input className="input" type="date" name="date" required/></label><label>People<input className="input" type="number" name="participants" min="1" max={Math.min(8, a.capacity)} defaultValue="1" required/></label><button className="btn btn-primary" type="submit">Book · {money(a.price_fils)}</button></form>
         {a.operator_phone && <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 10 }}><a className="btn btn-outline btn-small" href={`tel:${a.operator_phone}`}><Phone size={14}/> Call</a><a className="btn btn-outline btn-small" href={whatsapp(a.operator_phone)} target="_blank" rel="noopener noreferrer">WhatsApp</a></div>}
       </div>
-    </article>)}</div> : <div className="empty"><h3>Adventures are coming soon</h3><p>We&apos;re adding scuba diving, parasailing, canyoning and more. Check back shortly.</p></div>}
+    </article>)}</div> : <div className="empty"><h3>No verified activities are listed right now</h3><p>We&apos;ll add outdoor activities when operator, schedule, and price details are confirmed.</p></div>}
   </div></main>;
 }

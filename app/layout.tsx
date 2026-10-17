@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import { Geist, Noto_Sans_Arabic } from "next/font/google";
 import { cookies } from "next/headers";
 import { Analytics } from "@vercel/analytics/next";
@@ -8,6 +9,7 @@ import { Footer } from "@/components/footer";
 import { LocaleController } from "@/components/locale-controller";
 import { brand } from "@/lib/brand";
 import { isLocale, localeCookie } from "@/lib/i18n";
+import { getSiteConfig } from "@/lib/site-editor";
 import "./globals.css";
 const geist=Geist({subsets:["latin"]});
 const notoArabic=Noto_Sans_Arabic({subsets:["arabic"],variable:"--font-arabic",display:"swap"});
@@ -23,4 +25,4 @@ export async function generateMetadata():Promise<Metadata>{
     twitter:{card:"summary_large_image",title,description},robots:{index:true,follow:true},
   };
 }
-export default async function RootLayout({children}:{children:React.ReactNode}){const locale=await activeLocale();return <html lang={locale} dir={locale==="ar"?"rtl":"ltr"} suppressHydrationWarning><body className={`${geist.className} ${notoArabic.variable}`} data-locale={locale}><LocaleController locale={locale}/><Header locale={locale}/>{children}<Footer/><Analytics/><SpeedInsights/></body></html>}
+export default async function RootLayout({children}:{children:React.ReactNode}){const [locale,config]=await Promise.all([activeLocale(),getSiteConfig()]);const themeStyle={"--green":config.brand.accentColor,"--brand":config.brand.accentColor} as CSSProperties;return <html lang={locale} dir={locale==="ar"?"rtl":"ltr"} suppressHydrationWarning><body className={`${geist.className} ${notoArabic.variable}`} data-locale={locale} data-font-scale={config.theme.fontScale} data-card-style={config.theme.cardStyle} style={themeStyle}><LocaleController locale={locale}/><Header locale={locale}/>{children}<Footer/><Analytics/><SpeedInsights/></body></html>}

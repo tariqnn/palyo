@@ -13,7 +13,7 @@ const categories:Record<Sport,{label:string;types:string[];weighted?:boolean}[]>
 export default async function Leaderboards({searchParams}:{searchParams:Promise<{sport?:string;period?:string}>}){
  const {sport,period="all"}=await searchParams;const key=sports.includes(sport as Sport)?sport as Sport:"football";
  const dateClause=period==="month"?"AND g.starts_at>=date_trunc('month',now())":period==="season"?"AND g.starts_at>=now()-interval '90 days'":"";
- const leaders=await query<Leader>("SELECT u.name,u.username,u.avatar_url,p.rating,p.games,p.wins FROM sport_profiles p JOIN users u ON u.id=p.user_id WHERE p.sport=$1 ORDER BY p.rating DESC LIMIT 50",[key]);
+ const leaders=await query<Leader>("SELECT u.name,u.username,u.avatar_url,p.rating,p.games,p.wins FROM sport_profiles p JOIN users u ON u.id=p.user_id WHERE p.sport=$1 AND u.role NOT IN ('ADMIN','SUPER_ADMIN') AND p.games>0 ORDER BY p.rating DESC LIMIT 50",[key]);
  const stats=await Promise.all(categories[key].map(async category=>{
   const placeholders=category.types.map((_,i)=>`$${i+2}`).join(",");
   const value=category.weighted?"SUM(CASE e.type WHEN 'FREE_THROW' THEN 1 WHEN 'FIELD_GOAL_2' THEN 2 WHEN 'FIELD_GOAL_3' THEN 3 ELSE 0 END)":"count(*)";

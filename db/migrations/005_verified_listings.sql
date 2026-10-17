@@ -1,0 +1,4 @@
+ALTER TABLE venues ALTER COLUMN hourly_rate_fils DROP NOT NULL;
+ALTER TABLE venues ALTER COLUMN hourly_rate_fils DROP DEFAULT;
+ALTER TABLE venues ADD COLUMN IF NOT EXISTS source_url TEXT;
+ALTER TABLE academies ADD COLUMN IF NOT EXISTS source_url TEXT;

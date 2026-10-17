@@ -22,6 +22,7 @@ export async function currentUser():Promise<User|null> {
   return one<User>("SELECT u.id,u.name,u.username,u.email,u.role,u.avatar_url,u.xp,u.city FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now()",[tokenHash(token)]);
 }
 export async function requireUser():Promise<User> { const user=await currentUser(); if(!user) throw new Error("Please log in first."); return user; }
+export async function requireAdmin():Promise<User> { const user=await requireUser(); if(!["ADMIN","SUPER_ADMIN"].includes(user.role)) throw new Error("Super admin access is required."); return user; }
 export async function requireManager(gameId?:string):Promise<User> {
   const user=await requireUser();
   if(["ADMIN","SUPER_ADMIN"].includes(user.role)) return user;

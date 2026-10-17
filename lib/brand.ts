@@ -3,7 +3,7 @@ export const brand = {
   description: "Find your game. Play your sport.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   color: "#22e879",
-  supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL,
+  supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "info@creativnetworks.com",
   operatorName: process.env.NEXT_PUBLIC_OPERATOR_NAME || "PlayUp",
   operatorAddress: process.env.NEXT_PUBLIC_OPERATOR_ADDRESS,
   minimumAge: Number(process.env.NEXT_PUBLIC_MINIMUM_AGE || 16),

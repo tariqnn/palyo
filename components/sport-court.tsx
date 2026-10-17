@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
-import { Users, Plus, Sparkles, RotateCcw, CheckCircle2, Shield } from "lucide-react";
+import { Users, Plus, CheckCircle2, Shield } from "lucide-react";
 
 export type CourtPlayer = {
   id: string;
@@ -165,39 +165,13 @@ export function SportCourt({
   gameTitle,
   isBooked
 }: SportCourtProps) {
-  // Support interactive simulation of a new player joining
-  const [simulatedPlayers, setSimulatedPlayers] = useState<CourtPlayer[]>([]);
-  const [justAddedIndex, setJustAddedIndex] = useState<number | null>(null);
-
-  const totalJoined = Math.min(capacity, bookedCount + simulatedPlayers.length);
+  const totalJoined = Math.min(capacity, bookedCount);
   const spotsRemaining = Math.max(0, capacity - totalJoined);
 
   const spotLayout = getSpotPositions(sport, capacity);
   const normSport = (sport || "").toLowerCase();
 
-  const handleAddSimulatedPlayer = () => {
-    if (spotsRemaining <= 0) return;
-    const newIdx = totalJoined;
-    const dummyNames = ["Sami Zaid", "Faris Omar", "Maya Haddad", "Lina Saleh", "Khaled Mansour", "Nour Hamdan"];
-    const name = dummyNames[simulatedPlayers.length % dummyNames.length];
-    const newPlayer: CourtPlayer = {
-      id: `sim-${Date.now()}`,
-      name,
-      avatar_url: `https://i.pravatar.cc/120?img=${(totalJoined * 7) % 70 + 1}`,
-      team: spotLayout[newIdx]?.team || "BLACK"
-    };
-
-    setSimulatedPlayers(prev => [...prev, newPlayer]);
-    setJustAddedIndex(newIdx);
-    setTimeout(() => setJustAddedIndex(null), 1800);
-  };
-
-  const handleResetSimulation = () => {
-    setSimulatedPlayers([]);
-    setJustAddedIndex(null);
-  };
-
-  const allActivePlayers = [...players, ...simulatedPlayers];
+  const allActivePlayers = players;
 
   // Progress percentage
   const fillPercentage = Math.round((totalJoined / capacity) * 100);
@@ -236,7 +210,7 @@ export function SportCourt({
         </div>
       </div>
 
-      {/* Court Simulation Action Bar */}
+      {/* Court Legend */}
       <div className="court-sim-bar">
         <div className="court-sim-legend">
           <span className="legend-item"><span className="legend-color team-black" /> Team Black</span>
@@ -244,30 +218,6 @@ export function SportCourt({
           <span className="legend-item"><span className="legend-color spot-open" /> Available Spot</span>
         </div>
 
-        <div className="court-sim-actions">
-          {spotsRemaining > 0 && (
-            <button
-              type="button"
-              onClick={handleAddSimulatedPlayer}
-              className="court-sim-btn"
-              title="See what happens when a new player joins this match"
-            >
-              <Plus size={13} />
-              <span>Preview New Player</span>
-            </button>
-          )}
-          {simulatedPlayers.length > 0 && (
-            <button
-              type="button"
-              onClick={handleResetSimulation}
-              className="court-reset-btn"
-              title="Reset simulation back to real match data"
-            >
-              <RotateCcw size={12} />
-              <span>Reset</span>
-            </button>
-          )}
-        </div>
       </div>
 
       {/* The Visual Animated Court Canvas */}
@@ -349,12 +299,11 @@ export function SportCourt({
         {spotLayout.map((spot, index) => {
           const player = allActivePlayers[index];
           const isOccupied = !!player;
-          const isJustAdded = justAddedIndex === index;
 
           return (
             <div
               key={`spot-${index}`}
-              className={`court-spot ${isOccupied ? "is-occupied" : "is-open"} ${isJustAdded ? "just-added" : ""}`}
+              className={`court-spot ${isOccupied ? "is-occupied" : "is-open"}`}
               style={{
                 left: `${spot.x}%`,
                 top: `${spot.y}%`,
@@ -374,11 +323,6 @@ export function SportCourt({
                       />
                     ) : (
                       <span className="player-token-initial">{player.name[0]}</span>
-                    )}
-                    {isJustAdded && (
-                      <span className="player-new-badge">
-                        <Sparkles size={11} />
-                      </span>
                     )}
                   </div>
                   <div className="player-token-tag">

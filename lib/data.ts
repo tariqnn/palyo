@@ -3,7 +3,7 @@ import { type Sport } from "@/lib/brand";
 import type { ScoringConfig } from "@/lib/scoring";
 
 export type Game = { id:string; sport:Sport; title:string; format:string; description:string; rules:string; starts_at:string; ends_at:string; capacity:number; booked_count:number; price_fils:number; skill:string; status:string; finalized_at:string|null; image_url:string; recording_enabled:boolean; stream_enabled:boolean; venue_id:string; venue_name:string; area:string; address:string; organizer_id:string; organizer_name:string; mvp_id:string|null; score_config:ScoringConfig };
-export type Venue = {id:string;name:string;area:string;address:string;sports:string[];amenities:string[];image_url:string;rating:number};
+export type Venue = {id:string;name:string;area:string;address:string;sports:string[];amenities:string[];image_url:string;rating:number;hourly_rate_fils:number|null;source_url:string|null};
 export type Profile = {id:string;name:string;username:string;avatar_url:string|null;xp:number;city:string;created_at:string};
 export function money(fils:number){return `${(fils/1000).toFixed(fils%1000?1:0)} JD`;}
 export function gameDate(date:string){return new Date(date).toLocaleDateString("en-JO",{weekday:"short",month:"short",day:"numeric",timeZone:"Asia/Amman"});}

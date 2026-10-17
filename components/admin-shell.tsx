@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Activity, BarChart3, CalendarDays, Compass, CreditCard, GraduationCap, LayoutDashboard, Mail, MapPin, MessageSquare, Radio, Trophy, Users } from "lucide-react";
+import { Activity, BarChart3, CalendarDays, Compass, CreditCard, GraduationCap, LayoutDashboard, Mail, MapPin, MessageSquare, Radio, SlidersHorizontal, Trophy, Users } from "lucide-react";
 import { currentUser } from "@/lib/auth";
 
 export async function AdminShell({ children }: { children: React.ReactNode }) {
@@ -10,6 +10,9 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
   const admin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
   const links = [
     { href: "/admin", label: "Overview", icon: LayoutDashboard },
+    ...(admin ? [
+      { href: "/admin/site-editor", label: "Owner studio", icon: SlidersHorizontal },
+    ] : []),
     { href: "/admin/games", label: "Games", icon: CalendarDays },
     { href: "/admin/bookings", label: "Bookings", icon: CreditCard },
     { href: "/admin/streams", label: "Streams", icon: Radio },

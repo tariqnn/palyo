@@ -101,7 +101,7 @@ export async function redeemOfferAction(form:FormData){
 
 export async function bookCourtAction(form:FormData){
   const user=await currentUser();if(!user)redirect("/login");const venueId=String(form.get("venueId")||"");let error="",reference="";
-  try{const input=z.object({date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),time:z.string().regex(/^\d{2}:\d{2}$/),duration:z.coerce.number().refine(v=>[60,90,120].includes(v)),participants:z.coerce.number().int().min(1).max(30)}).parse({date:form.get("date"),time:form.get("time"),duration:form.get("duration"),participants:form.get("participants")});const start=DateTime.fromISO(`${input.date}T${input.time}`,{zone:"Asia/Amman"});if(!start.isValid||start.toMillis()<Date.now()+30*60*1000)throw new Error("Choose an available future time.");const end=start.plus({minutes:input.duration});await transaction(async tx=>{const venue=(await tx.query("SELECT hourly_rate_fils FROM venues WHERE id=$1 FOR UPDATE",[venueId])).rows[0];if(!venue)throw new Error("Venue not found.");const clash=(await tx.query("SELECT id FROM court_bookings WHERE venue_id=$1 AND status<>'CANCELLED' AND starts_at<$3 AND ends_at>$2 LIMIT 1",[venueId,start.toJSDate(),end.toJSDate()])).rows[0];if(clash)throw new Error("That time was just booked. Please choose another slot.");reference=`COURT-${randomUUID().slice(0,8).toUpperCase()}`;await tx.query("INSERT INTO court_bookings(id,reference,venue_id,user_id,starts_at,ends_at,amount_fils,participant_count) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",[randomUUID(),reference,venueId,user.id,start.toJSDate(),end.toJSDate(),Math.round(Number(venue.hourly_rate_fils)*input.duration/60),input.participants]);});}catch(e){error=errorText(e);}
+  try{const input=z.object({date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),time:z.string().regex(/^\d{2}:\d{2}$/),duration:z.coerce.number().refine(v=>[60,90,120].includes(v)),participants:z.coerce.number().int().min(1).max(30)}).parse({date:form.get("date"),time:form.get("time"),duration:form.get("duration"),participants:form.get("participants")});const start=DateTime.fromISO(`${input.date}T${input.time}`,{zone:"Asia/Amman"});if(!start.isValid||start.toMillis()<Date.now()+30*60*1000)throw new Error("Choose an available future time.");const end=start.plus({minutes:input.duration});await transaction(async tx=>{const venue=(await tx.query("SELECT hourly_rate_fils FROM venues WHERE id=$1 AND active=TRUE FOR UPDATE",[venueId])).rows[0];if(!venue)throw new Error("Venue not found.");if(venue.hourly_rate_fils==null)throw new Error("This venue has not published a verified rate yet.");const clash=(await tx.query("SELECT id FROM court_bookings WHERE venue_id=$1 AND status<>'CANCELLED' AND starts_at<$3 AND ends_at>$2 LIMIT 1",[venueId,start.toJSDate(),end.toJSDate()])).rows[0];if(clash)throw new Error("That time was just booked. Please choose another slot.");reference=`COURT-${randomUUID().slice(0,8).toUpperCase()}`;await tx.query("INSERT INTO court_bookings(id,reference,venue_id,user_id,starts_at,ends_at,amount_fils,participant_count) VALUES($1,$2,$3,$4,$5,$6,$7,$8)",[randomUUID(),reference,venueId,user.id,start.toJSDate(),end.toJSDate(),Math.round(Number(venue.hourly_rate_fils)*input.duration/60),input.participants]);});}catch(e){error=errorText(e);}
   revalidatePath("/bookings");redirect(error?`/venues/${venueId}/book?error=${encodeURIComponent(error)}`:`/bookings?type=courts&notice=${encodeURIComponent(`Court booked. Reference ${reference}`)}`);
 }
 
@@ -202,3 +202,39 @@ export async function saveVenueAction(form:FormData){let error="";try{const user
   await query("INSERT INTO audit_logs(id,actor_id,action,entity,entity_id) VALUES($1,$2,'VENUE_SAVED','venue',$3)",[randomUUID(),user.id,id]);revalidatePath("/venues");}catch(e){error=errorText(e);}adminDone("/admin/venues",error,"Venue saved");}
 
 export async function setCatalogueActiveAction(form:FormData){let error="";const table=String(form.get("table")),id=String(form.get("id")),next=form.get("active")==="1";try{await requirePlatformAdmin();if(!["activities","academies","venues"].includes(table))throw new Error("Unknown item.");await query(`UPDATE ${table} SET active=$1 WHERE id=$2`,[next,id]);revalidatePath(`/${table==="activities"?"activities":table}`);}catch(e){error=errorText(e);}adminDone(`/admin/${table}`,error,next?"Item is live":"Item hidden from the public site");}
+
+export async function saveSiteConfigAction(form:FormData){
+  let error="";
+  try{
+    const user=await requirePlatformAdmin();
+    const configRaw=form.get("configJson");
+    if(!configRaw)throw new Error("No configuration payload provided.");
+    const parsed=JSON.parse(String(configRaw));
+    const { saveSiteConfig }=await import("@/lib/site-editor");
+    await saveSiteConfig(parsed,user.id);
+    revalidatePath("/");
+    revalidatePath("/explore");
+    revalidatePath("/about");
+    revalidatePath("/contact");
+    revalidatePath("/admin/site-editor");
+  }catch(e){
+    error=errorText(e);
+  }
+  adminDone("/admin/site-editor",error,"Website settings and layout published live!");
+}
+
+export async function resetSiteConfigAction(){
+  let error="";
+  try{
+    const user=await requirePlatformAdmin();
+    const { resetSiteConfig }=await import("@/lib/site-editor");
+    await resetSiteConfig(user.id);
+    revalidatePath("/");
+    revalidatePath("/about");
+    revalidatePath("/contact");
+    revalidatePath("/admin/site-editor");
+  }catch(e){
+    error=errorText(e);
+  }
+  adminDone("/admin/site-editor",error,"Website restored to default settings.");
+}
