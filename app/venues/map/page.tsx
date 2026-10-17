@@ -68,7 +68,7 @@ export default async function VenueMap() {
                 className="map-frame"
                 src={mapUrl}
                 title="Map of PlayUp venues"
-                loading="lazy"
+                loading="eager"
                 referrerPolicy="no-referrer"
               />
             ) : (
