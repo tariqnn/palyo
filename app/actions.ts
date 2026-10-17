@@ -171,7 +171,7 @@ async function requirePlatformAdmin(){const user=await currentUser();if(!user)re
 const list=(v:FormDataEntryValue|null)=>String(v||"").split(/[\n,]/).map(x=>x.trim()).filter(Boolean).slice(0,30);
 const text=(v:FormDataEntryValue|null,max=2000)=>String(v||"").trim().slice(0,max);
 const imageOf=(f:FormData)=>String(f.get("imagePreset")||f.get("imageUrl")||"");
-const imageField=(v:string)=>{const u=v.trim();if(/^\/images\/[\w.-]+$/.test(u)||/^https:\/\/images\.unsplash\.com\//.test(u))return u;throw new Error("Choose a PlayUp image or paste an images.unsplash.com link.");};
+const imageField=(v:string)=>{const u=v.trim();if(u==="")return "";if((/^\/images\/[\w./-]+$/.test(u)&&!u.split("/").includes(".."))||/^https:\/\/images\.unsplash\.com\//.test(u))return u;throw new Error("Choose a PlayUp image or paste an images.unsplash.com link.");};
 const jd=(v:FormDataEntryValue|null)=>{const n=Number(v);if(!Number.isFinite(n)||n<0)throw new Error("Enter a valid price in JD.");return Math.round(n*1000);};
 const num=(v:FormDataEntryValue|null)=>{const s=String(v||"").trim();if(!s)return null;const n=Number(s);if(!Number.isFinite(n))throw new Error("Enter valid coordinates.");return n;};
 function adminDone(path:string,error:string,notice:string){redirect(error?`${path}?error=${encodeURIComponent(error)}`:`${path}?notice=${encodeURIComponent(notice)}`);}

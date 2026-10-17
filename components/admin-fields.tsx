@@ -6,6 +6,10 @@ export const bundledImages = [
   { value: "/images/dodgeball.jpg", label: "Dodgeball" },
   { value: "/images/tennis.jpg", label: "Tennis" },
   { value: "/images/hero-ground.jpg", label: "Stadium lights" },
+  { value: "/images/infinity-sports/court_3x3.jpeg", label: "Infinity Sports · 3x3 basketball" },
+  { value: "/images/infinity-sports/court_basketball_ac.jpeg", label: "Infinity Sports · indoor basketball" },
+  { value: "/images/infinity-sports/court_padel.jpeg", label: "Infinity Sports · padel" },
+  { value: "/images/infinity-sports/court_volleyball.jpeg", label: "Infinity Sports · volleyball" },
 ];
 
 export function ImageField({ defaultValue }: { defaultValue?: string }) {
