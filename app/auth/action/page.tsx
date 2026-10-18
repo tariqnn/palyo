@@ -5,7 +5,7 @@ import { AuthAction } from "./auth-action";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: `Account security | ${brand.name}`,
+  title: "Account security",
   robots: { index: false, follow: false },
 };
 

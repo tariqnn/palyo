@@ -75,11 +75,12 @@ export function AuthAction({ mode, code, apiKey }: Props) {
     }
   }
 
-  const heading = mode === "resetPassword" ? "Choose a new password" : mode === "verifyEmail" ? "Verify your email" : "Restore your account email";
+  const heading = mode === "resetPassword" ? "Choose a new password" : mode === "verifyEmail" ? "Verify your email" : mode === "recoverEmail" ? "Restore your account email" : "Secure link unavailable";
   const description = mode === "resetPassword"
     ? email ? `Set a new password for ${email}.` : "Set a new password for your PlayUp account."
     : mode === "verifyEmail" ? "Confirm this email address for your PlayUp account."
-      : "Confirm that you want to restore the previous email address on your PlayUp account.";
+      : mode === "recoverEmail" ? "Confirm that you want to restore the previous email address on your PlayUp account."
+        : "We couldn’t verify this account link. Request a new one from the PlayUp app.";
 
   return <main className="auth-action-page">
     <section className="auth-action-card" aria-live="polite">
