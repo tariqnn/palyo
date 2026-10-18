@@ -8,6 +8,15 @@
 - The reset message now includes branded HTML and a plain-text alternative, uses a fixed transactional subject, escapes the reset URL in HTML, and sets the support address as Reply-To when available. Click/open tracking is not added by the application.
 - Inbox placement has not been tested. Authentication and good content reduce spam risk but cannot guarantee inbox placement for every recipient.
 
+## Firebase mobile reset template recheck — 18 October 2026
+
+- Firebase project ID remains `sports-app-257a0`; its console display name and public-facing name are now both `PlayUp`. The console confirmed the project name update.
+- Firebase's Password reset template still has no sender display name, uses the subject `Reset your password for %APP_NAME%`, and contains the default Firebase copy. At recheck, the action URL was still `sports-app-257a0.firebaseapp.com/__/auth/action`.
+- Firebase Console currently allows opening the template editor and the custom action URL dialog. No changes have been saved yet. Custom SMTP is disabled and needs SMTP credentials before it can be enabled.
+- A PlayUp-branded handler is being prepared at `/auth/action`; it handles password reset, email verification, and email recovery. The handler must be deployed and the Firebase action URL changed to `https://play-up.fit/auth/action` before Firebase's action links use it. The action URL applies to all Firebase Auth email templates.
+- The mobile app currently calls Firebase Auth directly, so the website's HTML reset template does not change mobile reset emails. The default Firebase sender is still used and Outlook previously placed its message in Junk. Do not claim inbox delivery is fixed until a verified SMTP sender is configured and a new real message is checked.
+- A PlayUp horizontal logo asset is available at `/playup-email-logo.png` for the website template and future custom mobile mail.
+
 ## Sender setup
 
 1. Choose and activate one transactional email provider for website and staff setup messages. Use an isolated sending subdomain such as `notify.play-up.fit` and a consistent sender such as `PlayUp <no-reply@notify.play-up.fit>`; keep replies directed to the verified support mailbox.
@@ -15,7 +24,7 @@
 3. Publish a DMARC record for the chosen sending domain with reporting enabled and a monitoring policy first. Review aggregate reports, confirm all legitimate senders align, then consider a stricter policy. Do not publish a guessed provider record or enforcement policy.
 4. Put the provider API key and sender address into Vercel Production as encrypted environment variables. Do not place keys in source, preview variables, or client-visible variables.
 5. Verify DNS at the provider, send reset/setup messages to controlled Gmail and Outlook inboxes, and inspect message headers for SPF, DKIM, and DMARC pass/alignment. Check delivery/bounce/complaint events and spam placement before launch. Use only requested account/security messages; do not bulk-mail the tester list.
-6. Configure Firebase Authentication email templates and a verified custom action domain for the mobile app's password reset/staff setup emails. Firebase Console access was denied to the browser's current Google account, so the templates and custom-domain state could not be inspected or changed in this pass. Use Firebase's generated DNS records and verify them before applying the custom domain. If the project is upgraded to Identity Platform and custom SMTP is selected, use the same authenticated transactional sender only after confirming provider support and DNS alignment.
+6. Configure Firebase Authentication email templates and a verified custom action domain for the mobile app's password reset/staff setup emails. Deploy the branded action handler before saving the Firebase action URL. Verify the custom sending domain and its DNS records before enabling custom SMTP; do not guess provider records.
 
 ## What remains
 
