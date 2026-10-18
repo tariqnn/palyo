@@ -16,36 +16,37 @@ function readableError(message: string) {
 }
 
 export function AuthAction({ mode, code, apiKey }: Props) {
-  const [state, setState] = useState<State>("checking");
-  const [error, setError] = useState("");
+  const supported = mode === "resetPassword" || mode === "verifyEmail" || mode === "recoverEmail";
+  const validRequest = supported && code.length > 10 && apiKey === FIREBASE_API_KEY;
+  const [state, setState] = useState<State>(() =>
+    !validRequest ? "error" : mode === "resetPassword" ? "checking" : "ready",
+  );
+  const [error, setError] = useState(() =>
+    validRequest ? "" : "This PlayUp link is incomplete or invalid. Request a new one from the app.",
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
 
-  const supported = mode === "resetPassword" || mode === "verifyEmail" || mode === "recoverEmail";
-  const validRequest = supported && code.length > 10 && apiKey === FIREBASE_API_KEY;
-
   useEffect(() => {
-    if (!validRequest) {
-      setError("This PlayUp link is incomplete or invalid. Request a new one from the app.");
-      setState("error");
-      return;
-    }
-    if (mode === "resetPassword") {
-      void fetch(`https://identitytoolkit.googleapis.com/v1/accounts:resetPassword?key=${FIREBASE_API_KEY}`, {
+    if (!validRequest || mode !== "resetPassword") return;
+
+    const controller = new AbortController();
+    void fetch(`https://identitytoolkit.googleapis.com/v1/accounts:resetPassword?key=${FIREBASE_API_KEY}`, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ oobCode: code }),
+        signal: controller.signal,
       }).then(async response => {
         const data = await response.json();
         if (!response.ok || data.requestType !== "PASSWORD_RESET") throw new Error(data.error?.message ?? "INVALID_OOB_CODE");
         setEmail(data.email ?? "");
         setState("ready");
       }).catch(problem => {
+        if (controller.signal.aborted) return;
         setError(readableError(String(problem?.message ?? problem)));
         setState("error");
       });
-    } else {
-      setState("ready");
-    }
+
+    return () => controller.abort();
   }, [validRequest, mode, code]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {

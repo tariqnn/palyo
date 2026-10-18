@@ -37,7 +37,7 @@ const tables = [
 for (const t of tables) {
   try {
     await q(`TRUNCATE TABLE "${t}" RESTART IDENTITY CASCADE`);
-  } catch (err) {
+  } catch {
     // Ignore if table doesn't exist
   }
 }

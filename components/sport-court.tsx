@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { Users, Plus, CheckCircle2, Shield } from "lucide-react";
+import { Plus, CheckCircle2 } from "lucide-react";
 
 export type CourtPlayer = {
   id: string;
@@ -19,8 +19,6 @@ export type SportCourtProps = {
   bookedCount: number;
   players: CourtPlayer[];
   venueName?: string;
-  gameTitle?: string;
-  isBooked?: boolean;
 };
 
 // Generates balanced (x%, y%) coordinates for any sport & capacity
@@ -161,9 +159,7 @@ export function SportCourt({
   capacity,
   bookedCount,
   players,
-  venueName,
-  gameTitle,
-  isBooked
+  venueName
 }: SportCourtProps) {
   const totalJoined = Math.min(capacity, bookedCount);
   const spotsRemaining = Math.max(0, capacity - totalJoined);

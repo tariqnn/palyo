@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { brand } from "@/lib/brand";
 import { AuthAction } from "./auth-action";
 
 export const dynamic = "force-dynamic";
@@ -16,5 +15,8 @@ export default async function AuthActionPage({
 }) {
   const params = await searchParams;
   const one = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
-  return <AuthAction mode={one(params.mode) ?? ""} code={one(params.oobCode) ?? ""} apiKey={one(params.apiKey) ?? ""} />;
+  const mode = one(params.mode) ?? "";
+  const code = one(params.oobCode) ?? "";
+  const apiKey = one(params.apiKey) ?? "";
+  return <AuthAction key={`${mode}:${code}`} mode={mode} code={code} apiKey={apiKey} />;
 }
