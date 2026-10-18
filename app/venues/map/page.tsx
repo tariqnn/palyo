@@ -99,7 +99,7 @@ export default async function VenueMap() {
                 </div>
                 <a
                   className="icon-link"
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(coordinatesFor(venue) ? `${coordinatesFor(venue)!.latitude},${coordinatesFor(venue)!.longitude}` : venue.address || venue.area)}`}
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(coordinatesFor(venue) ? `${coordinatesFor(venue)!.latitude},${coordinatesFor(venue)!.longitude}` : venue.address || venue.area)}&travelmode=driving`}
                   target="_blank"
                   rel="noreferrer"
                   aria-label={`Directions to ${venue.name}`}
