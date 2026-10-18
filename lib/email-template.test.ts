@@ -11,6 +11,7 @@ describe("password reset email template", () => {
     expect(email.html).toContain("Reset your password");
     expect(email.html).toContain(`href="${url}"`);
     expect(email.html).toContain("This is an automated transactional email.");
+    expect(email.html).toContain("playup-email-logo.png");
   });
 
   it("escapes URL content before placing it in HTML", () => {
