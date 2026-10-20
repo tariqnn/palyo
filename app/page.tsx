@@ -10,14 +10,16 @@ import { money } from "@/lib/data";
 
 type AcademyPreview = { id: string; name: string; area: string; sports: string[]; rating: number; image_url: string };
 type ActivityPreview = { id: string; title: string; category: string; area: string; price_fils: number; image_url: string; difficulty: string };
+type EventPreview = { id: string; name: string; sport: string; description: string; starts_at: Date | string; image_url: string; href: string };
 
 export default async function Home() {
-  const [config, { rows: games }, venues, academies, activities] = await Promise.all([
+  const [config, { rows: games }, venues, academies, activities, events] = await Promise.all([
     getSiteConfig(),
     getGames(),
     getVenues(),
     query<AcademyPreview>("SELECT id, name, area, sports, rating, image_url FROM academies WHERE active=true ORDER BY rating DESC LIMIT 3").catch(() => []),
     query<ActivityPreview>("SELECT id, title, category, area, price_fils, image_url, difficulty FROM activities WHERE active=true ORDER BY created_at DESC LIMIT 3").catch(() => []),
+    query<EventPreview>("SELECT id,name,sport,description,starts_at,image_url,('/tournaments/'||id) AS href FROM tournaments WHERE status='OPEN' AND starts_at>now() UNION ALL SELECT e.id,e.title,COALESCE(a.sports[1],'sports'),e.description,e.starts_at,e.image_url,('/academies/'||a.id) AS href FROM academy_events e JOIN academies a ON a.id=e.academy_id WHERE e.status='PUBLISHED' AND e.starts_at>now() AND a.active=TRUE ORDER BY starts_at LIMIT 6").catch(() => []),
   ]);
 
   const activeSports = Object.entries(config.sports).filter(([, sport]) => sport.enabled);
@@ -152,6 +154,19 @@ export default async function Home() {
       )}
 
       {/* Popular Venues Section */}
+      <section className="section section-soft home-events">
+        <div className="container">
+          <div className="section-head">
+            <div><span className="eyebrow muted">PlayUp events</span><h2>Find your next big game</h2><p>Tournaments and sports events happening in your community.</p></div>
+            <Link className="section-link" href="/tournaments">All events <ArrowRight size={15}/></Link>
+          </div>
+          {events.length ? <div className="grid-3">{events.map(event=><Link className="card home-event-card" href={event.href} key={`${event.href}-${event.id}`}>
+            <div className="home-event-image"><Image src={event.image_url||"/images/football.jpg"} alt={event.name} fill sizes="33vw"/></div>
+            <div className="home-event-copy"><span className="badge badge-green">{event.sport}</span><h3>{event.name}</h3><p>{new Date(event.starts_at).toLocaleDateString("en-JO",{day:"numeric",month:"short",year:"numeric"})}</p><span>{event.description}</span></div>
+          </Link>)}</div> : <div className="home-events-empty"><span className="eyebrow">COMING UP</span><h3>Community events are on the way</h3><p>Check back soon for tournaments and local sports events.</p><Link className="btn btn-outline" href="/tournaments">Explore events <ArrowRight size={15}/></Link></div>}
+        </div>
+      </section>
+
       {config.sections.showVenues && venues.length > 0 && (
         <section className="section">
           <div className="container">
