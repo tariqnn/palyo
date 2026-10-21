@@ -12,16 +12,19 @@ export const bundledImages = [
   { value: "/images/infinity-sports/court_volleyball.jpeg", label: "Infinity Sports · volleyball" },
 ];
 
-export function ImageField({ defaultValue }: { defaultValue?: string }) {
+export function ImageField({ defaultValue, idPrefix = "catalogue-image" }: { defaultValue?: string; idPrefix?: string }) {
   const bundled = bundledImages.some(i => i.value === defaultValue);
-  return <div className="form-field"><label>Image</label>
-    <select name="imagePreset" defaultValue={bundled ? defaultValue : ""} aria-label="Choose a PlayUp image">
+  return <div className="form-field"><label htmlFor={`${idPrefix}-image-preset`}>Choose a PlayUp image</label>
+    <select id={`${idPrefix}-image-preset`} name="imagePreset" defaultValue={bundled ? defaultValue : ""}>
       <option value="">Custom link (below)</option>{bundledImages.map(i => <option value={i.value} key={i.value}>{i.label}</option>)}
     </select>
-    <input className="input" name="imageUrl" defaultValue={bundled ? "" : defaultValue || ""} placeholder="https://images.unsplash.com/… (only if no PlayUp image is chosen)" style={{ marginTop: 8 }}/>
+    <label htmlFor={`${idPrefix}-image-url`} className="admin-image-url-label">Or enter an image link</label>
+    <input className="input" id={`${idPrefix}-image-url`} name="imageUrl" defaultValue={bundled ? "" : defaultValue || ""} placeholder="https://images.unsplash.com/…" style={{ marginTop: 8 }}/>
   </div>;
 }
 
-export function ActiveToggle({ table, id, active }: { table: "activities" | "academies" | "venues"; id: string; active: boolean }) {
-  return <form action={setCatalogueActiveAction}><input type="hidden" name="table" value={table}/><input type="hidden" name="id" value={id}/><input type="hidden" name="active" value={active ? "0" : "1"}/><button className="text-button" type="submit">{active ? "Hide" : "Show"}</button></form>;
+export function ActiveToggle({ table, id, active, itemName }: { table: "activities" | "academies" | "venues"; id: string; active: boolean; itemName?: string }) {
+  const action = active ? "Hide" : "Show";
+  const type = table === "academies" ? "academy" : table === "activities" ? "activity" : "venue";
+  return <form action={setCatalogueActiveAction}><input type="hidden" name="table" value={table}/><input type="hidden" name="id" value={id}/><input type="hidden" name="active" value={active ? "0" : "1"}/><button className="text-button" type="submit" aria-label={`${action} ${itemName || type}`}>{action}</button></form>;
 }

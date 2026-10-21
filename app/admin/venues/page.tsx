@@ -28,16 +28,16 @@ export default async function AdminVenues({ searchParams }: { searchParams: Prom
       <h2 style={{ marginTop: 0 }}>{edit ? `Edit: ${edit.name}` : "Add a venue"}</h2>
       {edit && <input type="hidden" name="id" value={edit.id}/>}
       <div className="grid-2">
-        <div className="form-field"><label>Name</label><input className="input" name="name" defaultValue={edit?.name} required/></div>
-        <div className="form-field"><label>Area</label><input className="input" name="area" defaultValue={edit?.area} required placeholder="Abdoun"/></div>
-        <div className="form-field"><label>Address</label><input className="input" name="address" defaultValue={edit?.address} required/></div>
-        <div className="form-field"><label>Sports (comma separated)</label><input className="input" name="sports" defaultValue={edit?.sports?.join(", ")} required placeholder="football, basketball"/></div>
-        <div className="form-field"><label>Court hire per hour (JD)</label><input className="input" type="number" min="0" step="0.5" name="hourlyRate" defaultValue={edit ? edit.hourly_rate_fils / 1000 : 0} required/></div>
-        <div className="form-field"><label>Academy (optional)</label><select name="academyId" defaultValue={edit?.academy_id || ""}><option value="">None</option>{academies.map(a => <option value={a.id} key={a.id}>{a.name}</option>)}</select></div>
-        <div className="form-field"><label>Amenities (comma separated)</label><input className="input" name="amenities" defaultValue={edit?.amenities?.join(", ")} placeholder="Parking, Showers, Floodlights"/></div>
-        <ImageField defaultValue={edit?.image_url}/>
-        <div className="form-field"><label>Latitude (optional)</label><input className="input" name="latitude" defaultValue={edit?.latitude || ""}/></div>
-        <div className="form-field"><label>Longitude (optional)</label><input className="input" name="longitude" defaultValue={edit?.longitude || ""}/></div>
+        <div className="form-field"><label htmlFor="venue-name">Name</label><input className="input" id="venue-name" name="name" defaultValue={edit?.name} required/></div>
+        <div className="form-field"><label htmlFor="venue-area">Area</label><input className="input" id="venue-area" name="area" defaultValue={edit?.area} required placeholder="Abdoun"/></div>
+        <div className="form-field"><label htmlFor="venue-address">Address</label><input className="input" id="venue-address" name="address" defaultValue={edit?.address} required/></div>
+        <div className="form-field"><label htmlFor="venue-sports">Sports (comma separated)</label><input className="input" id="venue-sports" name="sports" defaultValue={edit?.sports?.join(", ")} required placeholder="football, basketball"/></div>
+        <div className="form-field"><label htmlFor="venue-rate">Court hire per hour (JD)</label><input className="input" id="venue-rate" type="number" min="0" step="0.5" name="hourlyRate" defaultValue={edit ? edit.hourly_rate_fils / 1000 : 0} required/></div>
+        <div className="form-field"><label htmlFor="venue-academy">Academy (optional)</label><select id="venue-academy" name="academyId" defaultValue={edit?.academy_id || ""}><option value="">None</option>{academies.map(a => <option value={a.id} key={a.id}>{a.name}</option>)}</select></div>
+        <div className="form-field"><label htmlFor="venue-amenities">Amenities (comma separated)</label><input className="input" id="venue-amenities" name="amenities" defaultValue={edit?.amenities?.join(", ")} placeholder="Parking, Showers, Floodlights"/></div>
+        <ImageField idPrefix="venue" defaultValue={edit?.image_url}/>
+        <div className="form-field"><label htmlFor="venue-latitude">Latitude (optional)</label><input className="input" id="venue-latitude" name="latitude" defaultValue={edit?.latitude || ""}/></div>
+        <div className="form-field"><label htmlFor="venue-longitude">Longitude (optional)</label><input className="input" id="venue-longitude" name="longitude" defaultValue={edit?.longitude || ""}/></div>
       </div>
       <div style={{ display: "flex", gap: 10 }}><button className="btn btn-primary" type="submit">{edit ? "Save changes" : "Add venue"}</button>{edit && <a className="btn btn-outline" href="/admin/venues">Cancel</a>}</div>
     </form>

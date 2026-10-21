@@ -1,3 +1,53 @@
-import Link from "next/link";import { BarChart3,Building2,CalendarCheck,Gift,LayoutDashboard,Users } from "lucide-react";
-const links=[{href:"/academy",label:"Overview",icon:LayoutDashboard},{href:"/academy/bookings",label:"Bookings",icon:CalendarCheck},{href:"/academy/courts",label:"Courts",icon:Building2},{href:"/academy/offers",label:"Offers",icon:Gift},{href:"/academy/staff",label:"Staff",icon:Users},{href:"/academy/analytics",label:"Analytics",icon:BarChart3}];
-export function AcademyShell({children,name}:{children:React.ReactNode;name:string}){return <main className="page academy-workspace"><div className="container"><div className="admin-demo-note"><strong>Academy workspace</strong><span>{name} · cash-first booking operations</span></div><div className="admin-layout"><nav className="admin-nav" aria-label="Academy navigation"><div className="admin-nav-title"><strong>{name}</strong><small>Business tools</small></div>{links.map(({href,label,icon:Icon})=><Link href={href} key={href}><Icon size={16}/>{label}</Link>)}<Link href="/academy/profile">Academy profile</Link></nav><section className="admin-content">{children}</section></div></div></main>}
+import type { ReactNode } from "react";
+import { WorkspaceNav, type WorkspaceNavGroup } from "@/components/workspace-nav";
+
+const groups: WorkspaceNavGroup[] = [
+  {
+    label: "Workspace",
+    links: [{ href: "/academy", label: "Overview", icon: "dashboard" }],
+  },
+  {
+    label: "Daily operations",
+    links: [
+      { href: "/academy/bookings", label: "Bookings", icon: "bookings" },
+      { href: "/academy/courts", label: "Courts", icon: "court" },
+    ],
+  },
+  {
+    label: "Grow your academy",
+    links: [
+      { href: "/academy/offers", label: "Offers", icon: "gift" },
+      { href: "/academy/analytics", label: "Analytics", icon: "analytics" },
+      { href: "/academy/staff", label: "Staff", icon: "users" },
+      { href: "/academy/profile", label: "Public page", icon: "academy" },
+    ],
+  },
+];
+
+export function AcademyShell({
+  children,
+  name,
+}: {
+  children: ReactNode;
+  name: string;
+}) {
+  return (
+    <main className="page academy-workspace">
+      <div className="container">
+        <div className="admin-demo-note">
+          <strong>Academy workspace</strong>
+          <span>{name} · cash-first booking operations</span>
+        </div>
+        <div className="admin-layout">
+          <WorkspaceNav
+            title={name}
+            subtitle="Academy workspace"
+            ariaLabel="Academy navigation"
+            groups={groups}
+          />
+          <section className="admin-content">{children}</section>
+        </div>
+      </div>
+    </main>
+  );
+}

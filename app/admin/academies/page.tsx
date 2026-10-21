@@ -21,19 +21,19 @@ export default async function AdminAcademies({ searchParams }: { searchParams: P
       <h2 style={{ marginTop: 0 }}>{edit ? `Edit: ${edit.name}` : "Add an academy"}</h2>
       {edit && <input type="hidden" name="id" value={edit.id}/>}
       <div className="grid-2">
-        <div className="form-field"><label>Name</label><input className="input" name="name" defaultValue={edit?.name} required/></div>
-        <div className="form-field"><label>Area</label><input className="input" name="area" defaultValue={edit?.area} required placeholder="Abdoun"/></div>
-        <div className="form-field"><label>Address</label><input className="input" name="address" defaultValue={edit?.address} required/></div>
-        <div className="form-field"><label>Sports (comma separated)</label><input className="input" name="sports" defaultValue={edit?.sports?.join(", ")} placeholder="football, tennis"/></div>
-        <div className="form-field"><label>Phone / WhatsApp</label><input className="input" name="phone" defaultValue={edit?.phone || ""}/></div>
-        <div className="form-field"><label>Email</label><input className="input" type="email" name="email" defaultValue={edit?.email || ""}/></div>
-        <div className="form-field"><label>Website</label><input className="input" name="website" defaultValue={edit?.website || ""} placeholder="https://"/></div>
-        <ImageField defaultValue={edit?.image_url}/>
-        <div className="form-field"><label>Latitude (optional)</label><input className="input" name="latitude" defaultValue={edit?.latitude || ""}/></div>
-        <div className="form-field"><label>Longitude (optional)</label><input className="input" name="longitude" defaultValue={edit?.longitude || ""}/></div>
+        <div className="form-field"><label htmlFor="academy-name">Name</label><input className="input" id="academy-name" name="name" defaultValue={edit?.name} required/></div>
+        <div className="form-field"><label htmlFor="academy-area">Area</label><input className="input" id="academy-area" name="area" defaultValue={edit?.area} required placeholder="Abdoun"/></div>
+        <div className="form-field"><label htmlFor="academy-address">Address</label><input className="input" id="academy-address" name="address" defaultValue={edit?.address} required/></div>
+        <div className="form-field"><label htmlFor="academy-sports">Sports (comma separated)</label><input className="input" id="academy-sports" name="sports" defaultValue={edit?.sports?.join(", ")} placeholder="football, tennis"/></div>
+        <div className="form-field"><label htmlFor="academy-phone">Phone / WhatsApp</label><input className="input" id="academy-phone" name="phone" defaultValue={edit?.phone || ""}/></div>
+        <div className="form-field"><label htmlFor="academy-email">Email</label><input className="input" id="academy-email" type="email" name="email" defaultValue={edit?.email || ""}/></div>
+        <div className="form-field"><label htmlFor="academy-website">Website</label><input className="input" id="academy-website" name="website" defaultValue={edit?.website || ""} placeholder="https://"/></div>
+        <ImageField idPrefix="academy" defaultValue={edit?.image_url}/>
+        <div className="form-field"><label htmlFor="academy-latitude">Latitude (optional)</label><input className="input" id="academy-latitude" name="latitude" defaultValue={edit?.latitude || ""}/></div>
+        <div className="form-field"><label htmlFor="academy-longitude">Longitude (optional)</label><input className="input" id="academy-longitude" name="longitude" defaultValue={edit?.longitude || ""}/></div>
       </div>
-      <div className="form-field"><label>Description</label><textarea className="input" name="description" rows={4} defaultValue={edit?.description}/></div>
-      <div className="form-field"><label>Training packages (one per line)</label><textarea className="input" name="packages" rows={3} defaultValue={edit?.training_packages?.join("\n")}/></div>
+      <div className="form-field"><label htmlFor="academy-description">Description</label><textarea className="input" id="academy-description" name="description" rows={4} defaultValue={edit?.description}/></div>
+      <div className="form-field"><label htmlFor="academy-packages">Training packages (one per line)</label><textarea className="input" id="academy-packages" name="packages" rows={3} defaultValue={edit?.training_packages?.join("\n")}/></div>
       <label className="check-row"><input type="checkbox" name="verified" defaultChecked={edit?.verified}/><span>Verified academy</span></label>
       <label className="check-row"><input type="checkbox" name="featured" defaultChecked={edit?.featured}/><span>Featured on the Academies page</span></label>
       <div style={{ display: "flex", gap: 10 }}><button className="btn btn-primary" type="submit">{edit ? "Save changes" : "Add academy"}</button>{edit && <a className="btn btn-outline" href="/admin/academies">Cancel</a>}</div>

@@ -1,0 +1,9 @@
+.env*
+.playup-*
+.playo-*
+playup-*.png
+playo-*.png
+node_modules
+.next
+coverage
+*.tsbuildinfo

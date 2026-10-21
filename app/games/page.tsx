@@ -14,6 +14,7 @@ export default async function GamesPage({searchParams}:{searchParams:Promise<Fil
   getVenues()
  ]);
  const areas=[...new Set(venues.map(v=>v.area))].sort();
+ const hasActiveFilters=Boolean(f.q||(f.sport&&f.sport!=="all")||(f.date&&f.date!=="all")||(f.area&&f.area!=="all")||(f.skill&&f.skill!=="all")||f.from||f.maxPrice||(f.available&&f.available!=="all"));
  const url=(extra:Record<string,string>)=>`/games?${new URLSearchParams({...Object.fromEntries(Object.entries(f).filter(([,v])=>!!v)) as Record<string,string>,...extra})}`;
  return <main className="page"><div className="container">
   <div className="listing-head"><div className="page-head"><span className="eyebrow muted">Play in Amman</span><h1>Open matches</h1><p>Find upcoming games near you.</p></div><Link className="btn btn-primary" href="/matches/create">Create a match</Link></div>
@@ -28,7 +29,7 @@ export default async function GamesPage({searchParams}:{searchParams:Promise<Fil
    <button className="btn btn-dark" type="submit">Search</button>
   </form>
   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:15}}><p className="muted" style={{fontSize:12,margin:0}}>{total} games found</p><div style={{display:"flex",gap:8}}><Link className={f.view!=="list"?"inline-link":"muted"} href={url({view:"grid"})} aria-label="Grid view"><LayoutGrid size={18}/></Link><Link className={f.view==="list"?"inline-link":"muted"} href={url({view:"list"})} aria-label="List view"><List size={18}/></Link></div></div>
-  {rows.length?<div className={`game-grid ${f.view==="list"?"game-list":""}`}>{rows.map((g,index)=><GameCard game={g} eager={index===0} key={g.id}/>)}</div>:<div className="empty"><h3>No games match your filters</h3><p>Try another date, sport or venue.</p><Link href="/games" className="btn btn-primary">Clear filters</Link></div>}
+  {rows.length?<div className={`game-grid ${f.view==="list"?"game-list":""}`}>{rows.map((g,index)=><GameCard game={g} eager={index===0} key={g.id}/>)}</div>:<section className="empty game-empty" aria-labelledby="games-empty-title"><span className="eyebrow muted">Your next game starts here</span><h2 id="games-empty-title">{hasActiveFilters?"No games match these filters":"No open matches yet"}</h2><p>{hasActiveFilters?"Clear the filters to see all matches, or start a game of your own.":"Start a match and invite players, or find a court to play at."}</p><div className="game-empty-actions">{hasActiveFilters&&<Link href="/games" className="btn btn-outline">Clear filters</Link>}<Link href="/matches/create" className="btn btn-primary">Create a match</Link><Link href="/venues" className="btn btn-outline">Find courts</Link></div></section>}
   {pages>1&&<nav className="pagination" aria-label="Pages">{Array.from({length:pages},(_,i)=><Link className={page===i+1?"active":""} href={url({page:String(i+1)})} key={i}>{i+1}</Link>)}</nav>}
  </div></main>;
 }
